@@ -1,0 +1,24 @@
+# База данных
+db.sqlite3
+data.json
+
+# Виртуальное окружение
+venv/
+
+# Медиафайлы
+media/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Статика собранная
+staticfiles/
+
+# IDE
+.vscode/
+.idea/
+
+# Переменные окружения (когда добавим)
+.env

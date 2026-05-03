@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}GKCalc — Gift Kombat Calculator{% endblock %}</title>
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+  <!-- Наш CSS поверх Bootstrap -->
+  <link rel="stylesheet" href="{% static 'css/gkc.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav class="gkc-nav">
+  <a href="{% url 'calculator:index' %}" class="gkc-logo">GKC <span>Gift Kombat Calc</span></a>
+  {% if user.is_authenticated %}
+    <span style="font-size:0.8rem;color:var(--text-secondary)">{{ user.email }}</span>
+    <a href="{% url 'accounts:logout' %}" style="font-size:0.75rem;color:var(--text-muted);text-decoration:none;">Выйти</a>
+  {% else %}
+    <a href="{% url 'accounts:login' %}" style="font-size:0.75rem;color:var(--text-secondary);text-decoration:none;">Войти</a>
+    <a href="{% url 'accounts:register' %}" style="font-size:0.75rem;color:var(--accent);text-decoration:none;">Регистрация</a>
+  {% endif %}
+  <button class="theme-toggle" onclick="toggleTheme()">☀ / ☾</button>
+</nav>
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<div id="gkc-toast" class="gkc-toast" style="display:none"></div>
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('gkc-theme', html.dataset.theme);
+}
+(function(){
+  const t = localStorage.getItem('gkc-theme');
+  if (t) document.documentElement.dataset.theme = t;
+})();
+
+function showToast(msg, ms=2000) {
+  const t = document.getElementById('gkc-toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', ms);
+}
+
+function getCookie(name) {
+  const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return v ? v.pop() : '';
+}
+async function gkcPost(url, data) {
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+    body: JSON.stringify(data),
+  });
+  return r.json();
+}
+</script>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

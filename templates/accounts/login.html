@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Вход — GKCalc{% endblock %}
+{% block content %}
+<div style="max-width:360px;margin:60px auto;padding:0 12px">
+  <div class="gkc-card">
+    <div class="gkc-card-title">Вход</div>
+    <form method="post" class="gkc-form">
+      {% csrf_token %}
+      <label>E-mail</label>
+      <input type="email" name="username" autofocus>
+      <label>Пароль</label>
+      <input type="password" name="password">
+      {% if form.errors %}
+        <div style="color:#ef4444;font-size:0.75rem">Неверный e-mail или пароль</div>
+      {% endif %}
+      <button type="submit" class="btn-gkc" style="width:100%">Войти</button>
+    </form>
+    <div style="margin-top:10px;font-size:0.8rem;color:var(--text-muted);text-align:center">
+      Нет аккаунта? <a href="{% url 'accounts:register' %}" style="color:var(--accent)">Регистрация</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

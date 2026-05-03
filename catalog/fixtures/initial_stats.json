@@ -1,0 +1,18 @@
+[
+  {"model":"catalog.stat","pk":1,"fields":{"slug":"health","name_ru":"Здоровье","category":"power","order":1,"is_percent":false}},
+  {"model":"catalog.stat","pk":2,"fields":{"slug":"attack","name_ru":"Атака","category":"power","order":2,"is_percent":false}},
+  {"model":"catalog.stat","pk":3,"fields":{"slug":"defense","name_ru":"Защита","category":"power","order":3,"is_percent":false}},
+  {"model":"catalog.stat","pk":4,"fields":{"slug":"accuracy","name_ru":"Точность","category":"power","order":4,"is_percent":true}},
+  {"model":"catalog.stat","pk":5,"fields":{"slug":"crit_chance","name_ru":"Крит. шанс","category":"power","order":5,"is_percent":true}},
+  {"model":"catalog.stat","pk":6,"fields":{"slug":"crit_damage","name_ru":"Крит. урон","category":"power","order":6,"is_percent":true}},
+  {"model":"catalog.stat","pk":7,"fields":{"slug":"pure_chance","name_ru":"Чист. шанс","category":"power","order":7,"is_percent":true}},
+  {"model":"catalog.stat","pk":8,"fields":{"slug":"pure_damage","name_ru":"Чистый урон","category":"power","order":8,"is_percent":true}},
+  {"model":"catalog.stat","pk":9,"fields":{"slug":"evasion","name_ru":"Уклонение","category":"power","order":9,"is_percent":true}},
+  {"model":"catalog.stat","pk":10,"fields":{"slug":"reflection","name_ru":"Отражение","category":"power","order":10,"is_percent":true}},
+  {"model":"catalog.stat","pk":11,"fields":{"slug":"vampirism","name_ru":"Вампиризм","category":"power","order":11,"is_percent":true}},
+  {"model":"catalog.stat","pk":12,"fields":{"slug":"res_vampirism","name_ru":"Сопр. вампиризму","category":"resistance","order":12,"is_percent":true}},
+  {"model":"catalog.stat","pk":13,"fields":{"slug":"res_crit_chance","name_ru":"Сопр. крит. шансу","category":"resistance","order":13,"is_percent":true}},
+  {"model":"catalog.stat","pk":14,"fields":{"slug":"res_crit_damage","name_ru":"Сопр. крит. урону","category":"resistance","order":14,"is_percent":true}},
+  {"model":"catalog.stat","pk":15,"fields":{"slug":"res_pure_chance","name_ru":"Сопр. чист. шансу","category":"resistance","order":15,"is_percent":true}},
+  {"model":"catalog.stat","pk":16,"fields":{"slug":"res_reflection","name_ru":"Сопр. отражению","category":"resistance","order":16,"is_percent":true}}
+]

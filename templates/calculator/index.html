@@ -1,0 +1,1521 @@
+{% extends "base.html" %}
+{% load static %}
+{% load calc_extras %}
+
+{% block title %}GKCalc — Калькулятор{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+{% if user.is_authenticated %}
+<div style="padding:6px 12px;background:var(--bg-secondary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;width:740px;">
+  <span style="font-size:0.75rem;color:var(--text-muted)">Слот:</span>
+  {% for d in user_dolls %}
+    <a href="?slot={{ d.slot_order }}" class="doll-tab {% if d.slot_order == active_slot %}active{% endif %}">{{ d.name }}</a>
+  {% endfor %}
+  {% if user_dolls|length < doll_slots_count %}
+    <a href="?slot={{ user_dolls|length }}" class="doll-tab">+ Новая</a>
+  {% endif %}
+  <button class="btn-gkc" style="font-size:0.7rem;padding:4px 10px;" onclick="saveDoll()">💾 Сохранить</button>
+  <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:4px 10px;" onclick="copyShareLink()">🔗 Ссылка</button>
+</div>
+{% endif %}
+
+<div class="gkc-container">
+  <!-- Кнопка навыков для мобильных -->
+  <button class="skills-toggle-btn d-lg-none" id="skills-toggle-btn" onclick="toggleSkillsOverlay()">📚 Навыки</button>
+<div class="row gkc-row g-0">
+
+  <!-- ЛЕВАЯ КОЛОНКА: СТАТЫ -->
+  <div class="col-lg-3 col-5 gkc-col" id="stats-col">
+
+    <div class="gkc-card">
+      <div class="gkc-card-title" style="color:var(--power-color)">⚔ Мощь</div>
+      {% for s in grouped_stats.power %}
+      <div class="stat-row">
+        <span class="stat-name">{{ s.name }}</span>
+        <span class="stat-value power" id="stat-{{ s.slug }}">
+          {{ s.value|floatformat:-2 }}{% if s.is_percent %}%{% endif %}
+        </span>
+      </div>
+      {% empty %}
+      <div style="color:var(--text-muted);font-size:0.75rem">Нет данных</div>
+      {% endfor %}
+    </div>
+
+    <div class="gkc-card">
+      <div class="gkc-card-title" style="color:var(--resist-color)">🛡 Сопротивление</div>
+      {% for s in grouped_stats.resistance %}
+      <div class="stat-row">
+        <span class="stat-name">{{ s.name }}</span>
+        <span class="stat-value resist" id="stat-{{ s.slug }}">
+          {{ s.value|floatformat:-2 }}{% if s.is_percent %}%{% endif %}
+        </span>
+      </div>
+      {% empty %}
+      <div style="color:var(--text-muted);font-size:0.75rem">Нет данных</div>
+      {% endfor %}
+    </div>
+
+    {% if active_effects %}
+    <div class="gkc-card" id="effects-block">
+    {% else %}
+    <div class="gkc-card" id="effects-block" style="display:none">
+    {% endif %}
+      <div class="gkc-card-title" style="color:#f59e0b">✨ Эффекты</div>
+      {% for eff in active_effects %}
+      <div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:2px;">{{ eff.source }}</div>
+        <div style="font-size:0.75rem;color:#f59e0b;font-weight:600;margin-bottom:2px;">{{ eff.name }}</div>
+        <div style="font-size:0.7rem;color:var(--text-secondary);line-height:1.4;">{{ eff.description }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА: ПЕРСОНАЖ -->
+  <div class="col-lg-5 col-7 gkc-col character-center">
+
+    <div class="level-badge">
+      <span style="color:var(--text-secondary);font-size:0.8rem">Ур.</span>
+      <input type="number" id="char-level" min="1" max="200"
+             value="{{ doll.character_level }}"
+             onchange="setLevel(this.value)">
+      <span style="font-size:0.75rem;color:var(--text-muted)" id="avail-pts">({{ available_points }} очков)</span>
+    </div>
+
+    <!-- Сетка обмундирования -->
+    <div class="equip-layout">
+
+      <!-- Левая колонка: основное оружие, шлем, броня -->
+      <div class="equip-col">
+        {% with slot=doll_slots|get_item:"main_weapon" %}
+        <div class="item-slot {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('main_weapon', 'Осн. оружие', {% if doll_slots|get_item:'main_weapon'  %}{% if doll_slots|get_item:'main_weapon'  %}{% with s=doll_slots|get_item:'main_weapon' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Осн. оружие">
+          {% with slot_obj=doll_slots|get_item:"main_weapon" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Осн. оружие</span>{% else %}<div class="item-slot-name">Осн. оружие</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+        {% with slot=doll_slots|get_item:"helmet" %}
+        <div class="item-slot {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('helmet', 'Шлем', {% if doll_slots|get_item:'helmet'  %}{% if doll_slots|get_item:'helmet'  %}{% with s=doll_slots|get_item:'helmet' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Шлем">
+          {% with slot_obj=doll_slots|get_item:"helmet" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Шлем</span>{% else %}<div class="item-slot-name">Шлем</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+        {% with slot=doll_slots|get_item:"armor" %}
+        <div class="item-slot {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('armor', 'Броня', {% if doll_slots|get_item:'armor'  %}{% if doll_slots|get_item:'armor'  %}{% with s=doll_slots|get_item:'armor' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Броня">
+          {% with slot_obj=doll_slots|get_item:"armor" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Броня</span>{% else %}<div class="item-slot-name">Броня</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+      </div>
+
+      <!-- Персонаж в центре -->
+      <div class="char-figure">
+      <div class="char-avatar">
+        <img src="{% static 'images/character.png' %}" alt="Персонаж" style="width:100%;height:100%;object-fit:contain;">
+      </div>
+        <div style="font-family:var(--font-display);font-size:0.9rem;color:var(--accent);margin-top:8px;">{{ doll.name }}</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">Уровень {{ doll.character_level }}</div>
+      </div>
+
+      <!-- Правая колонка: доп.оружие, усилитель, [дух + аксессуар] -->
+      <div class="equip-col">
+        {% with slot=doll_slots|get_item:"off_weapon" %}
+        <div class="item-slot {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('off_weapon', 'Доп. оружие', {% if doll_slots|get_item:'off_weapon'  %}{% if doll_slots|get_item:'off_weapon'  %}{% with s=doll_slots|get_item:'off_weapon' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Доп. оружие">
+          {% with slot_obj=doll_slots|get_item:"off_weapon" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Доп. оружие</span>{% else %}<div class="item-slot-name">Доп. оружие</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+        {% with slot=doll_slots|get_item:"amplifier" %}
+        <div class="item-slot {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('amplifier', 'Усилитель', {% if doll_slots|get_item:'amplifier'  %}{% if doll_slots|get_item:'amplifier'  %}{% with s=doll_slots|get_item:'amplifier' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Усилитель">
+          {% with slot_obj=doll_slots|get_item:"amplifier" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Усилитель</span>{% else %}<div class="item-slot-name">Усилитель</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+        <!-- Нижний ряд: дух-хранитель + аксессуар -->
+        <div class="equip-bottom-row">
+        {% with slot=doll_slots|get_item:"guardian" %}
+        <div class="item-slot item-slot-sm {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('guardian', 'Дух', {% if doll_slots|get_item:'guardian'  %}{% if doll_slots|get_item:'guardian'  %}{% with s=doll_slots|get_item:'guardian' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Дух">
+          {% with slot_obj=doll_slots|get_item:"guardian" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Дух</span>{% else %}<div class="item-slot-name">Дух</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+        {% with slot=doll_slots|get_item:"accessory" %}
+        <div class="item-slot {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('accessory', 'Аксессуар', {% if doll_slots|get_item:'accessory'  %}{% if doll_slots|get_item:'accessory'  %}{% with s=doll_slots|get_item:'accessory' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Аксессуар">
+          {% with slot_obj=doll_slots|get_item:"accessory" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Аксессуар</span>{% else %}<div class="item-slot-name">Аксессуар</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+        </div>
+      </div>
+
+    </div>
+
+    <input type="hidden" id="doll-id" value="{{ doll.pk }}">
+    <input type="hidden" id="doll-uuid" value="{{ doll.uuid }}">
+
+    <!-- Аккордеон сетов и предметов -->
+    <div id="sets-accordion" style="width:100%;margin-top:10px;max-height:320px;overflow-y:auto;">
+    </div>
+
+  </div>
+
+  <!-- ПРАВАЯ КОЛОНКА: НАВЫКИ -->
+  <div class="col-lg-4 gkc-col skills-col" id="skills-col">
+    <div class="gkc-card">
+      <div class="gkc-card-title" style="color:var(--skill-color);display:flex;justify-content:space-between;align-items:center;">
+        <span>📚 Дерево навыков</span>
+        <button class="btn-gkc btn-gkc-outline" style="font-size:0.65rem;padding:3px 8px;" onclick="resetSkills()">↺ Сброс</button>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:0.68rem;color:var(--text-muted)">ПКМ = откатить очко</span>
+        <span style="font-size:0.75rem;font-weight:600;"
+              id="avail-pts-skill"
+              class="{% if is_over_budget %}over-budget{% endif %}"
+              title="{% if is_over_budget %}Потрачено больше очков чем доступно по уровню. Нажмите Сброс.{% endif %}">
+          {% if is_over_budget %}⚠ перебор!{% else %}{{ available_points }} очков{% endif %}
+        </span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;margin-bottom:6px;">
+      </div>
+
+      <div class="skill-tree-wrap" id="skill-tree-wrap">
+        <svg id="skill-svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;"></svg>
+        <div class="skill-tree-grid">
+          {% regroup skill_nodes by order as skill_rows %}
+          {% for row in skill_rows %}
+            {% for node in row.list %}
+            {% with invested=invested_map|get_item:node.pk|default:0 %}
+            <div class="skill-node-wrap">
+              <div class="skill-circle {% if invested > 0 and invested >= node.max_points %}skill-complete{% elif invested > 0 %}skill-active{% endif %}"
+                   id="skill-node-{{ node.pk }}"
+                   data-node-id="{{ node.pk }}"
+                   data-max-points="{{ node.max_points }}"
+                   data-invested="{{ invested }}"
+                   onclick="clickSkill(event, {{ node.pk }}, {{ node.max_points }}, 'add')"
+                   oncontextmenu="clickSkill(event, {{ node.pk }}, {{ node.max_points }}, 'remove')"
+                   title="{{ node.name }}{% if node.description %}: {{ node.description }}{% endif %}">
+                <div class="skill-circle-dots" id="skill-dots-{{ node.pk }}">
+                  {% for i in "123" %}{% if forloop.counter <= node.max_points %}
+                  <div class="skill-cdot {% if invested >= forloop.counter %}filled{% endif %}"
+                       id="skill-dot-{{ node.pk }}-{{ forloop.counter }}"></div>
+                  {% endif %}{% endfor %}
+                </div>
+              </div>
+              <div class="skill-circle-label">{{ node.name|truncatechars:12 }}</div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <script id="skill-edges-data" type="application/json">
+        [{% for edge in skill_edges %}{"from":{{ edge.from_node.pk }},"to":{{ edge.to_node.pk }}}{% if not forloop.last %},{% endif %}{% endfor %}]
+      </script>
+
+    </div>
+  </div>
+</div>
+</div><!-- /row -->
+</div><!-- /gkc-container -->
+
+
+
+<!-- Overlay навыков для мобильных -->
+<div class="skills-overlay d-lg-none" id="skills-overlay" onclick="closeSkillsOverlay(event)"></div>
+
+<!-- КУКЛА СРАВНЕНИЯ — только десктоп, правая половина экрана -->
+<div class="d-none d-lg-flex" id="comparison-wrapper"
+     style="position:fixed;top:48px;right:0;width:50vw;height:calc(100vh - 48px);
+            flex-direction:column;pointer-events:none;">
+
+  <!-- Кнопка раскрытия -->
+  <button id="comp-toggle-btn" onclick="toggleComparison()"
+          style="pointer-events:all;position:absolute;left:-20px;top:50%;
+                 transform:translateY(-50%);background:var(--bg-card);
+                 border:1px solid var(--border-bright);border-radius:6px 0 0 6px;
+                 color:var(--text-secondary);font-size:0.65rem;writing-mode:vertical-rl;
+                 padding:10px 5px;cursor:pointer;z-index:100;letter-spacing:1px;
+                 transition:all 0.2s;">⚖ СРАВНИТЬ</button>
+
+  <!-- Содержимое куклы сравнения -->
+  <div id="comp-doll" style="display:none;pointer-events:all;width:100%;height:100%;
+                              background:var(--bg-primary);border-left:2px solid var(--border-bright);
+                              overflow:hidden;">
+    <div class="row g-0" style="height:100%;">
+
+      <!-- Левая: статы -->
+      <div class="col-3 gkc-col" id="comp-stats-col">
+        <div class="gkc-card">
+          <div class="gkc-card-title" style="color:var(--power-color)">⚔ Мощь</div>
+          <div id="comp-power-stats"></div>
+        </div>
+        <div class="gkc-card" style="margin-top:6px;">
+          <div class="gkc-card-title" style="color:var(--resist-color)">🛡 Сопротивление</div>
+          <div id="comp-resist-stats"></div>
+        </div>
+        <div class="gkc-card" id="comp-effects-block" style="display:none;margin-top:6px;">
+          <div class="gkc-card-title" style="color:#f59e0b">✨ Эффекты</div>
+          <div id="comp-effects-content"></div>
+        </div>
+      </div>
+
+      <!-- Центр: персонаж -->
+      <div class="col-5 gkc-col character-center">
+        <div class="level-badge">
+          <span style="color:var(--text-secondary);font-size:0.8rem">Ур.</span>
+          <input type="number" id="comp-level" min="1" max="200" value="1"
+                 onchange="compSetLevel(this.value)"
+                 style="width:48px;background:transparent;border:none;color:var(--accent);
+                        font-family:var(--font-display);font-size:1.1rem;font-weight:700;
+                        text-align:center;outline:none;">
+          <span style="font-size:0.75rem;color:var(--text-muted)" id="comp-avail-pts">(0 очков)</span>
+        </div>
+
+        <div class="equip-layout">
+          <div class="equip-col">
+            {% for st, label in slot_types %}{% if forloop.counter <= 3 %}
+            <div class="item-slot" id="comp-slot-{{ st }}"
+                 onclick="compOpenSlot('{{ st }}', '{{ label }}')" title="{{ label }}">
+              <div class="item-slot-name" id="comp-slot-label-{{ st }}">{{ label }}</div>
+            </div>
+            {% endif %}{% endfor %}
+          </div>
+          <div class="char-figure">
+            <div class="char-avatar">
+              <img src="{% static 'images/character.png' %}" alt="Персонаж"
+                   style="width:100%;height:100%;object-fit:contain;">
+            </div>
+            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Сравнение</div>
+          </div>
+          <div class="equip-col">
+            {% for st, label in slot_types %}{% if forloop.counter > 3 and st != 'guardian' and st != 'accessory' %}
+            <div class="item-slot" id="comp-slot-{{ st }}"
+                 onclick="compOpenSlot('{{ st }}', '{{ label }}')" title="{{ label }}">
+              <div class="item-slot-name" id="comp-slot-label-{{ st }}">{{ label }}</div>
+            </div>
+            {% endif %}{% endfor %}
+            <div class="equip-bottom-row">
+              <div class="item-slot item-slot-sm" id="comp-slot-guardian"
+                   onclick="compOpenSlot('guardian','Дух')" title="Дух">
+                <div class="item-slot-name" id="comp-slot-label-guardian">Дух</div>
+              </div>
+              <div class="item-slot" id="comp-slot-accessory"
+                   onclick="compOpenSlot('accessory','Аксессуар')" title="Аксессуар">
+                <div class="item-slot-name" id="comp-slot-label-accessory">Аксессуар</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="comp-sets-accordion"
+             style="width:100%;margin-top:8px;max-height:200px;overflow-y:auto;"></div>
+
+        <input type="hidden" id="comp-doll-id" value="">
+      </div>
+
+      <!-- Правая: навыки -->
+      <div class="col-4 gkc-col">
+        <div class="gkc-card">
+          <div class="gkc-card-title" style="color:var(--skill-color);display:flex;justify-content:space-between;">
+            <span>📚 Навыки</span>
+            <button class="btn-gkc btn-gkc-outline" style="font-size:0.6rem;padding:2px 6px;"
+                    onclick="compResetSkills()">↺</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:0.65rem;color:var(--text-muted)">ПКМ = откат</span>
+            <span style="font-size:0.72rem;color:var(--skill-color);font-weight:600;"
+                  id="comp-avail-pts-skill">0 очков</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 4px;position:relative;" id="comp-skill-grid">
+            <svg id="comp-skill-svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;"></svg>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Модалка куклы сравнения -->
+<div id="comp-modal" class="gkc-modal-backdrop" style="display:none;" onclick="compCloseModal(event)">
+  <div class="gkc-modal" onclick="event.stopPropagation()">
+
+    <div id="comp-modal-select-view">
+      <div class="gkc-modal-title" id="comp-modal-title">Выбор предмета</div>
+      <div class="gkc-form">
+        <label>Предмет</label>
+        <select id="comp-modal-item-select"><option value="">— пусто —</option></select>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <button class="btn-gkc" onclick="compApplyItem()">Надеть</button>
+          <button class="btn-gkc btn-gkc-outline" onclick="compApplyItem(true)">Снять</button>
+          <button class="btn-gkc btn-gkc-outline" onclick="compCloseModal()">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="comp-modal-edit-view" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div>
+          <div class="gkc-modal-title" id="comp-modal-item-name"></div>
+          <div id="comp-modal-item-rarity" style="font-size:0.7rem;"></div>
+        </div>
+        <div style="display:flex;gap:5px;">
+          <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:3px 8px;"
+                  onclick="compSwitchToSelect()">Сменить ▾</button>
+          <button class="btn-gkc btn-gkc-outline"
+                  style="font-size:0.7rem;padding:3px 8px;color:#ef4444;border-color:#ef4444;"
+                  onclick="compApplyItem(true)">Снять</button>
+        </div>
+      </div>
+      <div id="comp-modal-stats-list" class="gkc-form"></div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <button class="btn-gkc" onclick="compSaveStats()">Сохранить</button>
+        <button class="btn-gkc btn-gkc-outline" onclick="compCloseModal()">Отмена</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Модальное окно предмета -->
+<div id="slot-modal" class="gkc-modal-backdrop" style="display:none;" onclick="closeModal(event)">
+  <div class="gkc-modal" onclick="event.stopPropagation()" style="min-width:340px;max-width:460px;">
+
+    <!-- Режим выбора предмета -->
+    <div id="modal-select-view">
+      <div class="gkc-modal-title" id="modal-title">Выбор предмета</div>
+      <div class="gkc-form">
+        <label>Предмет</label>
+        <select id="modal-item-select">
+          <option value="">— пусто —</option>
+        </select>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <button class="btn-gkc" onclick="applyItemSelect()">Надеть</button>
+          <button class="btn-gkc btn-gkc-outline" onclick="applyItemSelect(true)">Снять</button>
+          <button class="btn-gkc btn-gkc-outline" onclick="closeModal()">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Режим редактирования статов -->
+    <div id="modal-edit-view" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div>
+          <div class="gkc-modal-title" id="modal-item-name" style="margin-bottom:2px;"></div>
+          <div id="modal-item-rarity" style="font-size:0.7rem;"></div>
+        </div>
+        <div style="display:flex;gap:5px;">
+          <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:3px 8px;"
+                  onclick="switchToSelectView()">Сменить ▾</button>
+          <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:3px 8px;color:#ef4444;border-color:#ef4444;"
+                  onclick="applyItemSelect(true)">Снять</button>
+        </div>
+      </div>
+      <div id="modal-stats-list" class="gkc-form"></div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <button class="btn-gkc" onclick="saveSlotStats()">Сохранить</button>
+        <button class="btn-gkc btn-gkc-outline" onclick="closeModal()">Отмена</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const ITEMS_BY_SLOT = {{ items_by_slot|safe }};
+const ALL_STATS = {{ all_stats|safe }};
+const SETS_BY_RARITY = {{ sets_by_rarity|safe }};
+const NO_SET_ITEMS = {{ no_set_items|safe }};
+const GUARDIAN_SLOT = 'guardian';
+const DOLL_ID = document.getElementById('doll-id').value;
+const DOLL_UUID = document.getElementById('doll-uuid').value;
+let activeSlotType = null;
+
+// Хранилище текущего состояния навыков в JS — не зависим от DOM-текста
+const skillState = {};
+{% regroup skill_nodes by order as skill_rows_js %}
+{% for row in skill_rows_js %}{% for node in row.list %}
+{% with invested=invested_map|get_item:node.pk|default:0 %}
+skillState[{{ node.pk }}] = { invested: {{ invested }}, max: {{ node.max_points }} };
+{% endwith %}{% endfor %}{% endfor %}
+
+// ─── Мобильный overlay навыков ───
+function toggleSkillsOverlay() {
+  const col = document.getElementById('skills-col');
+  const overlay = document.getElementById('skills-overlay');
+  const btn = document.getElementById('skills-toggle-btn');
+  const isOpen = col.classList.contains('open');
+  col.classList.toggle('open', !isOpen);
+  overlay.classList.toggle('active', !isOpen);
+  btn.classList.toggle('active', !isOpen);
+}
+
+function closeSkillsOverlay(e) {
+  if (e && e.target !== document.getElementById('skills-overlay')) return;
+  const col = document.getElementById('skills-col');
+  const overlay = document.getElementById('skills-overlay');
+  const btn = document.getElementById('skills-toggle-btn');
+  col.classList.remove('open');
+  overlay.classList.remove('active');
+  btn.classList.remove('active');
+}
+
+// ─── Определяем мобильный режим ───
+function isMobile() { return window.innerWidth < 992; }
+
+// ─── Навыки: клик с учётом мобильного (цикличный тап) ───
+async function clickSkill(event, nodeId, maxPoints, action) {
+  event.preventDefault();
+  const current = skillState[nodeId] ? skillState[nodeId].invested : 0;
+
+  // На мобильном — Вариант Б: заполнен → сброс до 0, иначе добавляем по одному
+  let actualAction = action;
+  if (isMobile()) {
+    if (current <= 0) {
+      actualAction = 'add';
+    } else if (current >= maxPoints) {
+      actualAction = 'reset';  // сбрасываем до 0
+    } else {
+      actualAction = 'add';
+    }
+  } else {
+    if (action === 'add' && current >= maxPoints) return;
+    if (action === 'remove' && current <= 0) return;
+  }
+
+  // Для сброса до 0 — отправляем remove несколько раз через рекурсию
+  if (actualAction === 'reset') {
+    let cur = current;
+    while (cur > 0) {
+      const res = await gkcPost("{% url 'calculator:api_update_skill' %}", {
+        doll_id: DOLL_ID, node_id: nodeId, action: 'remove',
+      });
+      if (!res.ok) { showToast(res.error || 'Ошибка'); break; }
+      cur = res.invested;
+      if (cur === 0) {
+        skillState[nodeId].invested = 0;
+        updateSkillNode(nodeId, 0, maxPoints);
+        const pts = res.available_points;
+        const el1 = document.getElementById('avail-pts');
+        const el2 = document.getElementById('avail-pts-skill');
+        if (el1) el1.textContent = '(' + pts + ' очков)';
+        if (el2) el2.textContent = pts + ' очков';
+        updateStatsDisplay(res.stats);
+      }
+    }
+    return;
+  }
+
+  const res = await gkcPost("{% url 'calculator:api_update_skill' %}", {
+    doll_id: DOLL_ID, node_id: nodeId, action: actualAction,
+  });
+
+  if (res.ok) {
+    skillState[nodeId].invested = res.invested;
+    updateSkillNode(nodeId, res.invested, maxPoints);
+    const pts = res.available_points;
+    const el1 = document.getElementById('avail-pts');
+    const el2 = document.getElementById('avail-pts-skill');
+    if (el1) el1.textContent = '(' + pts + ' очков)';
+    if (el2) el2.textContent = pts + ' очков';
+    updateStatsDisplay(res.stats);
+  } else {
+    showToast(res.error || 'Ошибка', 2500);
+  }
+}
+
+function updateSkillNode(nodeId, invested, maxPoints) {
+  const el = document.getElementById('skill-node-' + nodeId);
+  if (!el) return;
+  el.dataset.invested = invested;
+  // Цвет: пустой=серый, частично=зелёный, полный=фиолетовый
+  el.className = 'skill-circle' +
+    (invested > 0 && invested >= maxPoints ? ' skill-complete' :
+     invested > 0 ? ' skill-active' : '');
+  for (let i = 1; i <= maxPoints; i++) {
+    const dot = document.getElementById('skill-dot-' + nodeId + '-' + i);
+    if (dot) dot.classList.toggle('filled', i <= invested);
+  }
+}
+
+// Рисуем SVG линии связей между узлами
+function drawSkillEdges() {
+  const wrap = document.getElementById('skill-tree-wrap');
+  const svg  = document.getElementById('skill-svg');
+  if (!wrap || !svg) return;
+  const edges = JSON.parse(document.getElementById('skill-edges-data').textContent);
+  const wrapRect = wrap.getBoundingClientRect();
+  svg.innerHTML = '';
+  edges.forEach(edge => {
+    const from = document.getElementById('skill-node-' + edge.from);
+    const to   = document.getElementById('skill-node-' + edge.to);
+    if (!from || !to) return;
+    const fr = from.getBoundingClientRect();
+    const tr = to.getBoundingClientRect();
+    const x1 = fr.left + fr.width/2  - wrapRect.left;
+    const y1 = fr.top  + fr.height/2 - wrapRect.top;
+    const x2 = tr.left + tr.width/2  - wrapRect.left;
+    const y2 = tr.top  + tr.height/2 - wrapRect.top;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('stroke', 'var(--border-bright)');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('stroke-dasharray', 'none');
+    svg.appendChild(line);
+  });
+}
+window.addEventListener('resize', drawSkillEdges);
+
+// ─── Цвета редкости ───
+const RARITY_COLORS = {
+  common:    '#6b7280',
+  uncommon:  '#22c55e',
+  rare:      '#3b82f6',
+  epic:      '#a855f7',
+  crafted:   '#1e3a5f',
+  limited:   '#06b6d4',
+  legendary: '#f59e0b',
+};
+const RARITY_NAMES = {
+  common:'Common', uncommon:'Uncommon', rare:'Rare',
+  epic:'Epic', crafted:'Crafted', limited:'Limited', legendary:'Legendary'
+};
+
+// ─── Слоты предметов ───
+// Состояние слотов — обновляется при надевании/снятии
+const slotState = {};
+{% for st, label in slot_types %}
+{% with slot=doll_slots|get_item:st %}
+slotState['{{ st }}'] = { hasItem: {% if slot.item %}true{% else %}false{% endif %}, label: '{{ label }}' };
+{% endwith %}
+{% endfor %}
+
+async function openSlotModal(slotType, label, hasItem) {
+  activeSlotType = slotType;
+  // Читаем актуальное состояние из slotState, а не из параметра шаблона
+  const actualHasItem = slotState[slotType] ? slotState[slotType].hasItem : hasItem;
+  document.getElementById('slot-modal').style.display = 'flex';
+
+  if (actualHasItem) {
+    switchToEditView();
+    const res = await gkcPost("{% url 'calculator:api_get_slot_stats' %}", {
+      doll_id: DOLL_ID, slot_type: slotType,
+    });
+    if (res.ok) renderEditView(res);
+  } else {
+    switchToSelectView(label);
+  }
+}
+
+function switchToSelectView(label) {
+  document.getElementById('modal-select-view').style.display = 'block';
+  document.getElementById('modal-edit-view').style.display = 'none';
+  if (label) document.getElementById('modal-title').textContent = label;
+  const sel = document.getElementById('modal-item-select');
+  sel.innerHTML = '<option value="">— пусто —</option>';
+  (ITEMS_BY_SLOT[activeSlotType] || []).forEach(it => {
+    const opt = document.createElement('option');
+    opt.value = it.id;
+    opt.textContent = it.name;
+    sel.appendChild(opt);
+  });
+}
+
+function switchToEditView() {
+  document.getElementById('modal-select-view').style.display = 'none';
+  document.getElementById('modal-edit-view').style.display = 'block';
+}
+
+function renderEditView(res) {
+  document.getElementById('modal-item-name').textContent = res.item_name;
+  const rarityEl = document.getElementById('modal-item-rarity');
+  rarityEl.textContent = RARITY_NAMES[res.item_rarity] || '';
+  rarityEl.style.color = RARITY_COLORS[res.item_rarity] || '#fff';
+
+  const list = document.getElementById('modal-stats-list');
+  list.innerHTML = '';
+
+  // Текущие статы
+  res.slot_stats.forEach(s => {
+    list.appendChild(buildStatRow(s.stat_id, s.stat_name, s.is_percent, s.custom_value, s.base_value, s.diff_pct));
+  });
+
+  // Для духа-хранителя — кнопка добавления стата
+  if (activeSlotType === GUARDIAN_SLOT) {
+    const addRow = document.createElement('div');
+    addRow.id = 'guardian-add-row';
+    addRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);';
+
+    // Список уже добавленных stat_id
+    const existingIds = new Set(res.slot_stats.map(s => s.stat_id));
+    const available = ALL_STATS.filter(s => !existingIds.has(s.id));
+
+    if (available.length > 0) {
+      addRow.innerHTML = `
+        <select id="guardian-stat-select" style="flex:1;background:var(--bg-secondary);border:1px solid var(--border);
+                border-radius:4px;color:var(--text-primary);padding:4px 6px;font-size:0.78rem;">
+          <option value="">— выбрать стат —</option>
+          ${available.map(s => `<option value="${s.id}" data-percent="${s.is_percent}">${s.name_ru}</option>`).join('')}
+        </select>
+        <input type="number" id="guardian-stat-value" min="0" step="0.01" placeholder="0"
+               style="width:70px;background:var(--bg-secondary);border:1px solid var(--border);
+                      border-radius:4px;color:var(--text-primary);padding:4px 6px;font-size:0.78rem;">
+        <button class="btn-gkc" style="font-size:0.7rem;padding:4px 8px;" onclick="addGuardianStat()">+</button>`;
+    } else {
+      addRow.innerHTML = '<span style="font-size:0.72rem;color:var(--text-muted);">Все статы добавлены</span>';
+    }
+    list.appendChild(addRow);
+  }
+}
+
+function buildStatRow(statId, statName, isPercent, customValue, baseValue, diffPct) {
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:6px;';
+  div.dataset.statId = statId;
+
+  let diffHtml = '';
+  if (diffPct !== null && diffPct !== undefined && diffPct !== 0) {
+    const color = diffPct > 0 ? '#22c55e' : '#ef4444';
+    const sign = diffPct > 0 ? '+' : '';
+    diffHtml = `<span style="color:${color};font-size:0.7rem;margin-left:4px;">${sign}${diffPct}%</span>`;
+  }
+  const suffix = isPercent ? '%' : '';
+  div.innerHTML = `
+    <label style="flex:1;font-size:0.78rem;color:var(--text-secondary);">${statName}${diffHtml}</label>
+    <input type="number" min="0" step="0.01"
+           value="${customValue}"
+           data-stat-id="${statId}"
+           data-base="${baseValue ?? customValue}"
+           style="width:80px;background:var(--bg-secondary);border:1px solid var(--border);
+                  border-radius:4px;color:var(--text-primary);padding:3px 6px;font-size:0.8rem;"
+           oninput="updateDiffLabel(this)">
+    <span style="font-size:0.7rem;color:var(--text-muted);min-width:14px;">${suffix}</span>`;
+  return div;
+}
+
+function addGuardianStat() {
+  const sel = document.getElementById('guardian-stat-select');
+  const valInput = document.getElementById('guardian-stat-value');
+  const statId = parseInt(sel.value);
+  const value = parseFloat(valInput.value) || 0;
+  if (!statId) { showToast('Выберите стат'); return; }
+
+  const statName = sel.options[sel.selectedIndex].text;
+  const isPct = sel.options[sel.selectedIndex].dataset.percent === 'True';
+
+  // Добавляем строку в список
+  const list = document.getElementById('modal-stats-list');
+  const addRow = document.getElementById('guardian-add-row');
+  list.insertBefore(buildStatRow(statId, statName, isPct, value, 0, null), addRow);
+
+  // Убираем добавленный стат из селекта
+  sel.options[sel.selectedIndex].remove();
+  valInput.value = '';
+  if (sel.options.length <= 1) {
+    addRow.innerHTML = '<span style="font-size:0.72rem;color:var(--text-muted);">Все статы добавлены</span>';
+  }
+}
+
+function updateDiffLabel(input) {
+  const base = parseFloat(input.dataset.base);
+  const val = parseFloat(input.value) || 0;
+  const label = input.parentElement.querySelector('label');
+  const statName = label.textContent.split('(')[0].trim();
+  if (base !== 0) {
+    const pct = Math.round((val - base) / base * 1000) / 10;
+    if (pct !== 0) {
+      const color = pct > 0 ? '#22c55e' : '#ef4444';
+      const sign = pct > 0 ? '+' : '';
+      label.innerHTML = `${statName} <span style="color:${color};font-size:0.7rem;">${sign}${pct}%</span>`;
+    } else {
+      label.textContent = statName;
+    }
+  }
+}
+
+function updateSlotDOM(slotType, itemName, rarity, imageUrl) {
+  // Ищем только среди слотов основной куклы (не куклы сравнения)
+  const slots = document.querySelectorAll('.equip-layout .item-slot');
+  let slotEl = null;
+  slots.forEach(el => {
+    if (!el.id.startsWith('comp-') &&
+        el.getAttribute('onclick') &&
+        el.getAttribute('onclick').includes(`'${slotType}'`)) {
+      slotEl = el;
+    }
+  });
+  if (!slotEl) return;
+
+  // Обновляем рамку по редкости
+  slotEl.style.borderColor = RARITY_COLORS[rarity] || 'var(--border)';
+  if (rarity === 'legendary') {
+    slotEl.style.background = 'rgba(245,158,11,0.08)';
+  } else {
+    slotEl.style.background = '';
+  }
+
+  // Обновляем содержимое
+  const nameEl = slotEl.querySelector('.item-slot-name');
+  const imgEl = slotEl.querySelector('img');
+
+  if (imageUrl) {
+    if (imgEl) {
+      imgEl.src = imageUrl;
+      imgEl.style.display = '';
+      if (nameEl) nameEl.style.display = 'none';
+    } else {
+      slotEl.innerHTML = `<img src="${imageUrl}" alt="${itemName}"
+        style="width:80%;height:80%;object-fit:contain;"
+        onerror="this.style.display='none'">`;
+    }
+  } else {
+    if (imgEl) imgEl.style.display = 'none';
+    if (nameEl) {
+      nameEl.style.display = '';
+      nameEl.textContent = itemName || '';
+    }
+  }
+  slotEl.classList.add('has-item');
+}
+
+function clearSlotDOM(slotType, defaultLabel) {
+  const slots = document.querySelectorAll('.item-slot');
+  slots.forEach(el => {
+    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(`'${slotType}'`)) {
+      el.style.borderColor = '';
+      el.style.background = '';
+      el.classList.remove('has-item');
+      const imgEl = el.querySelector('img');
+      if (imgEl) imgEl.style.display = 'none';
+      const nameEl = el.querySelector('.item-slot-name');
+      if (nameEl) {
+        nameEl.style.display = '';
+        nameEl.textContent = defaultLabel || slotType;
+      }
+    }
+  });
+}
+
+function updateEffectsDisplay(effects) {
+  const effBlock = document.getElementById('effects-block');
+  if (!effBlock) return;
+
+  if (!effects || effects.length === 0) {
+    effBlock.style.display = 'none';
+    return;
+  }
+
+  effBlock.style.display = '';
+  let html = '<div class="gkc-card-title" style="color:#f59e0b">✨ Эффекты</div>';
+  effects.forEach((eff, i) => {
+    const border = i < effects.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
+    html += `
+      <div style="margin-bottom:8px;padding-bottom:8px;${border}">
+        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:2px;">${eff.source}</div>
+        <div style="font-size:0.75rem;color:#f59e0b;font-weight:600;margin-bottom:2px;">${eff.name}</div>
+        <div style="font-size:0.7rem;color:var(--text-secondary);line-height:1.4;">${eff.description}</div>
+      </div>`;
+  });
+  effBlock.innerHTML = html;
+}
+
+async function applyItemSelect(remove) {
+  const itemId = remove ? null : document.getElementById('modal-item-select').value;
+  const res = await gkcPost("{% url 'calculator:api_select_item' %}", {
+    doll_id: DOLL_ID, slot_type: activeSlotType, item_id: itemId || null,
+  });
+  if (res.ok) {
+    updateStatsDisplay(res.stats);
+    updateEffectsDisplay(res.effects);
+    if (remove) {
+      slotState[activeSlotType] = { hasItem: false, label: slotState[activeSlotType]?.label };
+      clearSlotDOM(activeSlotType, document.getElementById('modal-title').textContent);
+      closeModal();
+    } else if (itemId && res.slot_stats && res.slot_stats.length) {
+      slotState[activeSlotType] = { hasItem: true, label: slotState[activeSlotType]?.label };
+      updateSlotDOM(activeSlotType, res.item_name, res.item_rarity, res.image_url);
+      switchToEditView();
+      renderEditView(res);
+    } else {
+      closeModal();
+    }
+    showToast(remove ? 'Предмет снят' : 'Предмет надет');
+  }
+}
+
+async function saveSlotStats() {
+  const list = document.getElementById('modal-stats-list');
+  const inputs = list ? list.querySelectorAll('input[data-stat-id]') : [];
+  const stats = {};
+  inputs.forEach(inp => { stats[inp.dataset.statId] = parseFloat(inp.value) || 0; });
+  const res = await gkcPost("{% url 'calculator:api_save_slot_stats' %}", {
+    doll_id: DOLL_ID, slot_type: activeSlotType, stats,
+  });
+  if (res.ok) {
+    updateStatsDisplay(res.stats);
+    updateEffectsDisplay(res.effects);
+    showToast('Статы сохранены');
+    closeModal();
+  }
+}
+
+// ─── Аккордеон сетов ───
+const SLOT_LABELS = {
+  main_weapon:'Осн. оружие', helmet:'Шлем', armor:'Броня',
+  off_weapon:'Доп. оружие', amplifier:'Усилитель',
+  accessory:'Аксессуар', guardian:'Дух'
+};
+
+function buildAccordion() {
+  const acc = document.getElementById('sets-accordion');
+  if (!acc) return;
+  acc.innerHTML = '';
+
+  // Сеты по редкостям
+  SETS_BY_RARITY.forEach(group => {
+    acc.appendChild(buildAccordionSection(
+      group.label, group.rarity, group.sets, false
+    ));
+  });
+
+  // Без сета
+  if (NO_SET_ITEMS.length > 0) {
+    acc.appendChild(buildNoSetSection());
+  }
+}
+
+function buildAccordionSection(label, rarity, sets, open) {
+  const color = RARITY_COLORS[rarity] || 'var(--text-secondary)';
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'border:1px solid var(--border);border-radius:6px;margin-bottom:4px;overflow:hidden;';
+
+  const header = document.createElement('div');
+  header.style.cssText = `display:flex;justify-content:space-between;align-items:center;
+    padding:6px 10px;cursor:pointer;background:var(--bg-card);user-select:none;`;
+  header.innerHTML = `<span style="font-size:0.78rem;font-weight:600;color:${color};">${label}</span>
+    <span style="font-size:0.7rem;color:var(--text-muted);" class="acc-arrow">${open ? '▲' : '▼'}</span>`;
+
+  const body = document.createElement('div');
+  body.style.cssText = `display:${open ? 'block' : 'none'};background:var(--bg-secondary);padding:6px 8px;`;
+
+  sets.forEach(set => {
+    const setDiv = document.createElement('div');
+    setDiv.style.cssText = 'margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);';
+    let itemsHtml = set.items.map(it => `
+      <span class="set-item-chip" onclick="equipSingleItem(${it.id}, '${it.slot_type}')"
+            style="display:inline-block;background:var(--bg-card);border:1px solid ${RARITY_COLORS[it.rarity]||'var(--border)'};
+                   border-radius:4px;padding:2px 7px;font-size:0.68rem;cursor:pointer;margin:2px;
+                   color:var(--text-secondary);" title="${SLOT_LABELS[it.slot_type]||it.slot_type}">
+        ${it.name}
+      </span>`).join('');
+    setDiv.innerHTML = `
+      <div style="font-size:0.75rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;">${set.name}</div>
+      <div style="margin-bottom:5px;">${itemsHtml}</div>
+      <button class="btn-gkc" style="font-size:0.65rem;padding:3px 8px;"
+              onclick="equipSet(${set.id})">⚔ Надеть сет</button>`;
+    body.appendChild(setDiv);
+  });
+
+  header.onclick = () => {
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    header.querySelector('.acc-arrow').textContent = isOpen ? '▼' : '▲';
+  };
+
+  wrap.appendChild(header);
+  wrap.appendChild(body);
+  return wrap;
+}
+
+function buildNoSetSection() {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'border:1px solid var(--border);border-radius:6px;margin-bottom:4px;overflow:hidden;';
+
+  const header = document.createElement('div');
+  header.style.cssText = `display:flex;justify-content:space-between;align-items:center;
+    padding:6px 10px;cursor:pointer;background:var(--bg-card);user-select:none;`;
+  header.innerHTML = `<span style="font-size:0.78rem;font-weight:600;color:var(--text-muted);">Без сета</span>
+    <span style="font-size:0.7rem;color:var(--text-muted);" class="acc-arrow">▼</span>`;
+
+  const body = document.createElement('div');
+  body.style.cssText = 'display:none;background:var(--bg-secondary);padding:6px 8px;';
+
+  let itemsHtml = NO_SET_ITEMS.map(it => `
+    <span onclick="equipSingleItem(${it.id}, '${it.slot_type}')"
+          style="display:inline-block;background:var(--bg-card);border:1px solid ${RARITY_COLORS[it.rarity]||'var(--border)'};
+                 border-radius:4px;padding:2px 7px;font-size:0.68rem;cursor:pointer;margin:2px;
+                 color:var(--text-secondary);" title="${SLOT_LABELS[it.slot_type]||it.slot_type}">
+      ${it.name}
+    </span>`).join('');
+  body.innerHTML = itemsHtml;
+
+  header.onclick = () => {
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    header.querySelector('.acc-arrow').textContent = isOpen ? '▼' : '▲';
+  };
+
+  wrap.appendChild(header);
+  wrap.appendChild(body);
+  return wrap;
+}
+
+async function equipSet(setId) {
+  const res = await gkcPost("{% url 'calculator:api_equip_set' %}", {
+    doll_id: DOLL_ID, set_id: setId,
+  });
+  if (res.ok) {
+    updateStatsDisplay(res.stats);
+    updateEffectsDisplay(res.effects);
+    res.equipped.forEach(e => {
+      slotState[e.slot_type] = { hasItem: true };
+      updateSlotDOM(e.slot_type, e.item_name, e.item_rarity, e.image_url);
+    });
+    showToast('Сет надет!');
+  }
+}
+
+async function equipSingleItem(itemId, slotType) {
+  const res = await gkcPost("{% url 'calculator:api_select_item' %}", {
+    doll_id: DOLL_ID, slot_type: slotType, item_id: itemId,
+  });
+  if (res.ok) {
+    updateStatsDisplay(res.stats);
+    updateEffectsDisplay(res.effects);
+    slotState[slotType] = { hasItem: true };
+    updateSlotDOM(slotType, res.item_name, res.item_rarity, res.image_url);
+    showToast(res.item_name + ' надет');
+  }
+}
+
+// Строим аккордеон при загрузке
+window.addEventListener('load', () => {
+  buildAccordion();
+  drawSkillEdges();
+});
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('slot-modal')) return;
+  document.getElementById('slot-modal').style.display = 'none';
+}
+
+async function setLevel(val) {
+  const res = await gkcPost("{% url 'calculator:api_set_level' %}", {
+    doll_id: DOLL_ID, level: parseInt(val),
+  });
+  if (res.ok) {
+    const pts = res.available_points;
+    document.getElementById('avail-pts').textContent = '(' + pts + ' очков)';
+    const skillPts = document.getElementById('avail-pts-skill');
+    if (res.is_over_budget) {
+      skillPts.textContent = '⚠ перебор!';
+      skillPts.classList.add('over-budget');
+      skillPts.title = 'Потрачено больше очков чем доступно по уровню. Нажмите Сброс.';
+    } else {
+      skillPts.textContent = pts + ' очков';
+      skillPts.classList.remove('over-budget');
+      skillPts.title = '';
+    }
+  }
+}
+
+async function resetSkills() {
+  const res = await gkcPost("{% url 'calculator:api_reset_skills' %}", { doll_id: DOLL_ID });
+  if (res.ok) {
+    updateStatsDisplay(res.stats);
+    const pts = res.available_points;
+    document.getElementById('avail-pts').textContent = '(' + pts + ' очков)';
+    const skillPts = document.getElementById('avail-pts-skill');
+    skillPts.textContent = pts + ' очков';
+    skillPts.classList.remove('over-budget');
+    skillPts.title = '';
+    // Сбрасываем все узлы визуально И в skillState
+    document.querySelectorAll('.skill-circle').forEach(el => {
+      const nodeId = parseInt(el.dataset.nodeId);
+      const maxPts = parseInt(el.dataset.maxPoints);
+      el.dataset.invested = 0;
+      el.className = 'skill-circle';
+      if (skillState[nodeId]) skillState[nodeId].invested = 0;
+      for (let i = 1; i <= maxPts; i++) {
+        const dot = document.getElementById('skill-dot-' + nodeId + '-' + i);
+        if (dot) dot.classList.remove('filled');
+      }
+    });
+    showToast('Навыки сброшены');
+  }
+}
+
+function formatStatVal(val) {
+  // Показываем до 2 знаков если дробное, иначе целое
+  return Number.isInteger(val) || Math.round(val) === val ? Math.round(val) : parseFloat(val.toFixed(2));
+}
+
+function updateStatsDisplay(stats) {
+  document.querySelectorAll('[id^="stat-"]').forEach(el => {
+    const slug = el.id.replace('stat-', '');
+    const val = stats[slug] || 0;
+    const isPct = el.textContent.includes('%');
+    el.textContent = formatStatVal(val) + (isPct ? '%' : '');
+  });
+}
+
+async function saveDoll() {
+  const res = await gkcPost("{% url 'calculator:api_save_doll' %}", { doll_id: DOLL_ID });
+  if (res.ok) showToast('Кукла сохранена!');
+}
+
+function copyShareLink() {
+  const url = window.location.origin + '/share/' + DOLL_UUID + '/';
+  navigator.clipboard.writeText(url).then(() => showToast('Ссылка скопирована!'));
+}
+
+// ══════════════════════════════════════════════════════
+//  КУКЛА СРАВНЕНИЯ — через те же API что и левая кукла
+// ══════════════════════════════════════════════════════
+
+let COMP_DOLL_ID = null;
+let compActiveSlot = null;
+// slotState для куклы сравнения
+const compSlotState = {};
+const compSkillState = {};
+
+// ─── Открытие/закрытие ───
+async function toggleComparison() {
+  const doll = document.getElementById('comp-doll');
+  const btn = document.getElementById('comp-toggle-btn');
+  const isOpen = doll.style.display !== 'none';
+
+  if (!isOpen) {
+    // Открываем — загружаем куклу сравнения
+    const res = await gkcPost("{% url 'calculator:api_get_comparison_doll' %}", {});
+    if (res.ok) {
+      COMP_DOLL_ID = res.doll_id;
+      document.getElementById('comp-doll-id').value = COMP_DOLL_ID;
+      document.getElementById('comp-level').value = res.level;
+      document.getElementById('comp-avail-pts').textContent = '(' + res.available_points + ' очков)';
+      document.getElementById('comp-avail-pts-skill').textContent = res.available_points + ' очков';
+
+      // Слоты
+      for (const [st, data] of Object.entries(res.slots)) {
+        compSlotState[st] = { hasItem: !!data.item_id };
+        if (data.item_id) {
+          compUpdateSlotDOM(st, data.item_name, data.item_rarity, data.image_url);
+        }
+      }
+
+      // Навыки
+      for (const [nodeId, pts] of Object.entries(res.invested_map)) {
+        compSkillState[parseInt(nodeId)] = pts;
+      }
+
+      // Сначала показываем блок, потом рендерим
+      doll.style.display = 'block';
+      btn.style.color = 'var(--accent)';
+      btn.style.borderColor = 'var(--accent)';
+
+      requestAnimationFrame(() => {
+        compRenderStats(res.stats);
+        compBuildSkillGrid();
+        compBuildAccordion();
+      });
+    }
+  } else {
+    doll.style.display = 'none';
+    btn.style.color = 'var(--text-secondary)';
+    btn.style.borderColor = 'var(--border-bright)';
+  }
+}
+
+// ─── Отображение статов с цветами сравнения ───
+function compUpdateEffects(effects) {
+  const block = document.getElementById('comp-effects-block');
+  const content = document.getElementById('comp-effects-content');
+  if (!block || !content) return;
+  if (!effects || effects.length === 0) {
+    block.style.display = 'none';
+    return;
+  }
+  block.style.display = '';
+  let html = '';
+  effects.forEach((eff, i) => {
+    const border = i < effects.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
+    html += `<div style="margin-bottom:6px;padding-bottom:6px;${border}">
+      <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:2px;">${eff.source}</div>
+      <div style="font-size:0.72rem;color:#f59e0b;font-weight:600;margin-bottom:2px;">${eff.name}</div>
+      <div style="font-size:0.68rem;color:var(--text-secondary);line-height:1.4;">${eff.description}</div>
+    </div>`;
+  });
+  content.innerHTML = html;
+}
+
+function compRenderStats(compStats) {
+  if (!compStats) return;
+  const powerEl = document.getElementById('comp-power-stats');
+  const resistEl = document.getElementById('comp-resist-stats');
+  if (!powerEl || !resistEl) return;
+
+  // Читаем статы левой куклы из DOM
+  const leftStats = {};
+  document.querySelectorAll('[id^="stat-"]').forEach(el => {
+    const slug = el.id.replace('stat-', '');
+    leftStats[slug] = parseFloat(el.textContent) || 0;
+  });
+
+  let powerHtml = '';
+  let resistHtml = '';
+
+  ALL_STATS.forEach(stat => {
+    const val = compStats[stat.slug] || 0;
+    const leftVal = leftStats[stat.slug] || 0;
+    const suffix = stat.is_percent ? '%' : '';
+    const displayVal = formatStatVal(val) + suffix;
+
+    let color = stat.category === 'power' ? 'var(--power-color)' : 'var(--resist-color)';
+    let diffHtml = '';
+
+    if (leftVal !== 0 && Math.abs(val - leftVal) > 0.01) {
+      const diff = Math.round((val - leftVal) / Math.abs(leftVal) * 100);
+      if (val > leftVal) {
+        color = '#22c55e';
+        diffHtml = `<span style="font-size:0.62rem;color:#22c55e">(+${diff}%)</span>`;
+      } else {
+        color = '#ef4444';
+        diffHtml = `<span style="font-size:0.62rem;color:#ef4444">(${diff}%)</span>`;
+      }
+    }
+
+    const row = `<div class="stat-row">
+      <span class="stat-name">${stat.name_ru}</span>
+      <span class="stat-value" style="color:${color};min-width:auto;">
+        ${displayVal} ${diffHtml}
+      </span>
+    </div>`;
+
+    if (stat.category === 'power') powerHtml += row;
+    else resistHtml += row;
+  });
+
+  powerEl.innerHTML = powerHtml;
+  resistEl.innerHTML = resistHtml;
+}
+
+// ─── Слоты куклы сравнения ───
+function compOpenSlot(slotType, label) {
+  compActiveSlot = slotType;
+  const hasItem = compSlotState[slotType] && compSlotState[slotType].hasItem;
+  document.getElementById('comp-modal').style.display = 'flex';
+
+  if (hasItem) {
+    compSwitchToEdit();
+    gkcPost("{% url 'calculator:api_get_slot_stats' %}", {
+      doll_id: COMP_DOLL_ID, slot_type: slotType,
+    }).then(res => { if (res.ok) compRenderEditView(res); });
+  } else {
+    compSwitchToSelect(label);
+  }
+}
+
+function compSwitchToSelect(label) {
+  document.getElementById('comp-modal-select-view').style.display = 'block';
+  document.getElementById('comp-modal-edit-view').style.display = 'none';
+  if (label) document.getElementById('comp-modal-title').textContent = label;
+  const sel = document.getElementById('comp-modal-item-select');
+  sel.innerHTML = '<option value="">— пусто —</option>';
+  (ITEMS_BY_SLOT[compActiveSlot] || []).forEach(it => {
+    const opt = document.createElement('option');
+    opt.value = it.id; opt.textContent = it.name;
+    sel.appendChild(opt);
+  });
+}
+
+function compSwitchToEdit() {
+  document.getElementById('comp-modal-select-view').style.display = 'none';
+  document.getElementById('comp-modal-edit-view').style.display = 'block';
+}
+
+function compRenderEditView(res) {
+  document.getElementById('comp-modal-item-name').textContent = res.item_name;
+  const rarityEl = document.getElementById('comp-modal-item-rarity');
+  rarityEl.textContent = RARITY_NAMES[res.item_rarity] || '';
+  rarityEl.style.color = RARITY_COLORS[res.item_rarity] || '#fff';
+  const list = document.getElementById('comp-modal-stats-list');
+  list.innerHTML = '';
+  res.slot_stats.forEach(s => {
+    list.appendChild(buildStatRow(s.stat_id, s.stat_name, s.is_percent, s.custom_value, s.base_value, s.diff_pct));
+  });
+}
+
+async function compApplyItem(remove) {
+  const itemId = remove ? null : document.getElementById('comp-modal-item-select').value;
+  const res = await gkcPost("{% url 'calculator:api_select_item' %}", {
+    doll_id: COMP_DOLL_ID, slot_type: compActiveSlot, item_id: itemId || null,
+  });
+  if (res.ok) {
+    compSlotState[compActiveSlot] = { hasItem: !remove };
+    if (remove) {
+      compClearSlotDOM(compActiveSlot);
+      compCloseModal();
+    } else if (itemId && res.slot_stats && res.slot_stats.length) {
+      compUpdateSlotDOM(compActiveSlot, res.item_name, res.item_rarity, res.image_url);
+      compSwitchToEdit();
+      compRenderEditView(res);
+    } else {
+      compCloseModal();
+    }
+    compRenderStats(res.stats);
+    compUpdateEffects(res.effects);
+    showToast(remove ? 'Снято' : 'Надет: ' + res.item_name);
+  }
+}
+
+async function compSaveStats() {
+  const list = document.getElementById('comp-modal-stats-list');
+  const inputs = list ? list.querySelectorAll('input[data-stat-id]') : [];
+  const stats = {};
+  inputs.forEach(inp => { stats[inp.dataset.statId] = parseFloat(inp.value) || 0; });
+  const res = await gkcPost("{% url 'calculator:api_save_slot_stats' %}", {
+    doll_id: COMP_DOLL_ID, slot_type: compActiveSlot, stats,
+  });
+  if (res.ok) {
+    compRenderStats(res.stats);
+    showToast('Статы сохранены');
+    compCloseModal();
+  }
+}
+
+function compCloseModal(e) {
+  if (e && e.target !== document.getElementById('comp-modal')) return;
+  document.getElementById('comp-modal').style.display = 'none';
+}
+
+function compUpdateSlotDOM(slotType, itemName, rarity, imageUrl) {
+  const slotEl = document.getElementById('comp-slot-' + slotType);
+  if (!slotEl) return;
+  slotEl.style.borderColor = RARITY_COLORS[rarity] || 'var(--border)';
+  const labelEl = document.getElementById('comp-slot-label-' + slotType);
+  if (imageUrl) {
+    let img = slotEl.querySelector('img');
+    if (!img) { img = document.createElement('img'); slotEl.insertBefore(img, slotEl.firstChild); }
+    img.src = imageUrl;
+    img.style.cssText = 'width:80%;height:80%;object-fit:contain;';
+    if (labelEl) labelEl.style.display = 'none';
+  } else {
+    if (labelEl) { labelEl.textContent = itemName || slotType; labelEl.style.display = ''; }
+  }
+}
+
+function compClearSlotDOM(slotType) {
+  const slotEl = document.getElementById('comp-slot-' + slotType);
+  if (!slotEl) return;
+  slotEl.style.borderColor = '';
+  const img = slotEl.querySelector('img');
+  if (img) img.remove();
+  const labelEl = document.getElementById('comp-slot-label-' + slotType);
+  if (labelEl) { labelEl.style.display = ''; }
+}
+
+// ─── Навыки куклы сравнения ───
+function compBuildSkillGrid() {
+  const grid = document.getElementById('comp-skill-grid');
+  if (!grid || grid.querySelectorAll('.skill-node-wrap').length > 0) return;
+
+  {% regroup skill_nodes by order as comp_skill_rows %}
+  {% for row in comp_skill_rows %}{% for node in row.list %}
+  (function() {
+    const wrap = document.createElement('div');
+    wrap.className = 'skill-node-wrap';
+    const invested = compSkillState[{{ node.pk }}] || 0;
+    const maxPts = {{ node.max_points }};
+    wrap.innerHTML = `<div class="skill-circle ${invested >= maxPts && invested > 0 ? 'skill-complete' : invested > 0 ? 'skill-active' : ''}"
+         id="comp-node-{{ node.pk }}"
+         data-invested="${invested}" data-max="${maxPts}"
+         onclick="compClickSkill(event, {{ node.pk }}, ${maxPts}, 'add')"
+         oncontextmenu="compClickSkill(event, {{ node.pk }}, ${maxPts}, 'remove')"
+         title="{{ node.name }}">
+      <div class="skill-circle-dots" id="comp-dots-{{ node.pk }}">
+        ${Array.from({length: maxPts}, (_, i) =>
+          `<div class="skill-cdot ${i < invested ? 'filled' : ''}" id="comp-dot-{{ node.pk }}-${i+1}"></div>`
+        ).join('')}
+      </div>
+    </div>
+    <div class="skill-circle-label">{{ node.name|truncatechars:10 }}</div>`;
+    grid.appendChild(wrap);
+  })();
+  {% endfor %}{% endfor %}
+  // Рисуем линии связей после построения грида
+  setTimeout(drawCompSkillEdges, 50);
+}
+
+function drawCompSkillEdges() {
+  const wrap = document.getElementById('comp-skill-grid');
+  const svg = document.getElementById('comp-skill-svg');
+  if (!wrap || !svg) return;
+  const edges = JSON.parse(document.getElementById('skill-edges-data').textContent);
+  const wrapRect = wrap.getBoundingClientRect();
+  svg.innerHTML = '';
+  edges.forEach(edge => {
+    const from = document.getElementById('comp-node-' + edge.from);
+    const to   = document.getElementById('comp-node-' + edge.to);
+    if (!from || !to) return;
+    const fr = from.getBoundingClientRect();
+    const tr = to.getBoundingClientRect();
+    const x1 = fr.left + fr.width/2  - wrapRect.left;
+    const y1 = fr.top  + fr.height/2 - wrapRect.top;
+    const x2 = tr.left + tr.width/2  - wrapRect.left;
+    const y2 = tr.top  + tr.height/2 - wrapRect.top;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('stroke', 'var(--border-bright)');
+    line.setAttribute('stroke-width', '1.5');
+    svg.appendChild(line);
+  });
+}
+
+async function compClickSkill(event, nodeId, maxPoints, action) {
+  event.preventDefault();
+  const current = compSkillState[nodeId] || 0;
+  if (action === 'add' && current >= maxPoints) return;
+  if (action === 'remove' && current <= 0) return;
+
+  const res = await gkcPost("{% url 'calculator:api_update_skill' %}", {
+    doll_id: COMP_DOLL_ID, node_id: nodeId, action,
+  });
+  if (res.ok) {
+    compSkillState[nodeId] = res.invested;
+    const el = document.getElementById('comp-node-' + nodeId);
+    if (el) {
+      el.dataset.invested = res.invested;
+      el.className = 'skill-circle' +
+        (res.invested >= maxPoints ? ' skill-complete' : res.invested > 0 ? ' skill-active' : '');
+      for (let i = 1; i <= maxPoints; i++) {
+        const dot = document.getElementById('comp-dot-' + nodeId + '-' + i);
+        if (dot) dot.classList.toggle('filled', i <= res.invested);
+      }
+    }
+    document.getElementById('comp-avail-pts').textContent = '(' + res.available_points + ' очков)';
+    document.getElementById('comp-avail-pts-skill').textContent = res.available_points + ' очков';
+    compRenderStats(res.stats);
+    compUpdateEffects(res.effects);
+  } else {
+    showToast(res.error || 'Ошибка');
+  }
+}
+
+async function compResetSkills() {
+  const res = await gkcPost("{% url 'calculator:api_reset_skills' %}", { doll_id: COMP_DOLL_ID });
+  if (res.ok) {
+    Object.keys(compSkillState).forEach(k => { compSkillState[k] = 0; });
+    document.querySelectorAll('[id^="comp-node-"]').forEach(el => {
+      const nodeId = el.id.replace('comp-node-', '');
+      const maxPts = parseInt(el.dataset.max);
+      el.dataset.invested = 0;
+      el.className = 'skill-circle';
+      for (let i = 1; i <= maxPts; i++) {
+        const dot = document.getElementById('comp-dot-' + nodeId + '-' + i);
+        if (dot) dot.classList.remove('filled');
+      }
+    });
+    document.getElementById('comp-avail-pts').textContent = '(' + res.available_points + ' очков)';
+    document.getElementById('comp-avail-pts-skill').textContent = res.available_points + ' очков';
+    compRenderStats(res.stats);
+    compUpdateEffects(res.effects);
+    showToast('Навыки сброшены');
+  }
+}
+
+async function compSetLevel(val) {
+  const res = await gkcPost("{% url 'calculator:api_set_level' %}", {
+    doll_id: COMP_DOLL_ID, level: parseInt(val),
+  });
+  if (res.ok) {
+    document.getElementById('comp-avail-pts').textContent = '(' + res.available_points + ' очков)';
+    document.getElementById('comp-avail-pts-skill').textContent = res.available_points + ' очков';
+  }
+}
+
+// ─── Аккордеон сетов куклы сравнения ───
+function compBuildAccordion() {
+  const acc = document.getElementById('comp-sets-accordion');
+  if (!acc || acc.children.length > 0) return;
+
+  SETS_BY_RARITY.forEach(group => {
+    const color = RARITY_COLORS[group.rarity] || 'var(--text-secondary)';
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'border:1px solid var(--border);border-radius:5px;margin-bottom:3px;overflow:hidden;';
+    const header = document.createElement('div');
+    header.style.cssText = `display:flex;justify-content:space-between;padding:4px 8px;cursor:pointer;background:var(--bg-card);`;
+    header.innerHTML = `<span style="font-size:0.7rem;font-weight:600;color:${color};">${group.label}</span><span class="acc-arrow" style="font-size:0.6rem;color:var(--text-muted);">▼</span>`;
+    const body = document.createElement('div');
+    body.style.cssText = 'display:none;background:var(--bg-secondary);padding:4px 6px;';
+    group.sets.forEach(set => {
+      const div = document.createElement('div');
+      div.style.marginBottom = '5px';
+      let chips = set.items.map(it =>
+        `<span onclick="compEquipSingle(${it.id},'${it.slot_type}')"
+               style="display:inline-block;background:var(--bg-card);border:1px solid ${RARITY_COLORS[it.rarity]||'var(--border)'};
+                      border-radius:3px;padding:1px 5px;font-size:0.62rem;cursor:pointer;margin:1px;">
+           ${it.name}</span>`).join('');
+      div.innerHTML = `<div style="font-size:0.68rem;font-weight:600;margin-bottom:2px;">${set.name}</div>
+        <div>${chips}</div>
+        <button class="btn-gkc" style="font-size:0.58rem;padding:2px 5px;margin-top:2px;"
+                onclick="compEquipSet(${set.id})">⚔ Надеть</button>`;
+      body.appendChild(div);
+    });
+    header.onclick = () => {
+      const open = body.style.display !== 'none';
+      body.style.display = open ? 'none' : 'block';
+      header.querySelector('.acc-arrow').textContent = open ? '▼' : '▲';
+    };
+    wrap.appendChild(header); wrap.appendChild(body);
+    acc.appendChild(wrap);
+  });
+}
+
+async function compEquipSingle(itemId, slotType) {
+  compActiveSlot = slotType;
+  const res = await gkcPost("{% url 'calculator:api_select_item' %}", {
+    doll_id: COMP_DOLL_ID, slot_type: slotType, item_id: itemId,
+  });
+  if (res.ok) {
+    compSlotState[slotType] = { hasItem: true };
+    compUpdateSlotDOM(slotType, res.item_name, res.item_rarity, res.image_url);
+    compRenderStats(res.stats);
+    compUpdateEffects(res.effects);
+    showToast(res.item_name + ' надет');
+  }
+}
+
+async function compEquipSet(setId) {
+  const res = await gkcPost("{% url 'calculator:api_equip_set' %}", {
+    doll_id: COMP_DOLL_ID, set_id: setId,
+  });
+  if (res.ok) {
+    res.equipped.forEach(e => {
+      compSlotState[e.slot_type] = { hasItem: true };
+      compUpdateSlotDOM(e.slot_type, e.item_name, e.item_rarity, e.image_url);
+    });
+    compRenderStats(res.stats);
+    compUpdateEffects(res.effects);
+    showToast('Сет надет на куклу сравнения');
+  }
+}
+
+</script>
+{% endblock %}
