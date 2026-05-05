@@ -12,7 +12,8 @@ from .services import (
     get_stats_grouped, get_available_points, get_total_points,
     get_spent_points, is_over_budget,
     can_unlock_node, can_remove_point, save_stats_snapshot,
-    calculate_doll_stats, get_active_effects
+    calculate_doll_stats, get_active_effects,
+    save_doll_state, restore_doll_state
 )
 
 
@@ -87,6 +88,11 @@ def _get_doll(request, doll_id=None):
 
 
 def index(request):
+    return _render_index(request)
+
+
+def _render_index(request):
+    """Основная логика рендера калькулятора."""
     if request.user.is_authenticated:
         slot = int(request.GET.get('slot', 0))
         slot = max(0, min(slot, settings.DOLL_SLOTS_PER_USER - 1))
@@ -206,19 +212,43 @@ def index(request):
 
 
 def doll_public(request, uuid):
-    doll = get_object_or_404(Doll, uuid=uuid, is_public=True)
-    grouped_stats = get_stats_grouped(doll)
-    doll_slots = {
-        ds.slot_type: ds
-        for ds in doll.slots.select_related('item').all()
-    }
-    context = {
-        'doll': doll,
-        'doll_slots': doll_slots,
-        'grouped_stats': grouped_stats,
-        'readonly': True,
-    }
-    return render(request, 'calculator/doll_public.html', context)
+    """Открыть снимок куклы по ссылке."""
+    from .models import DollSnapshot
+    snapshot = get_object_or_404(DollSnapshot, uuid=uuid)
+    state = snapshot.state
+
+    # Определяем целевую куклу
+    if request.user.is_authenticated:
+        slot = int(request.GET.get('slot', 0))
+        slot = max(0, min(slot, settings.DOLL_SLOTS_PER_USER - 1))
+        target = _get_user_doll(request, slot)
+    else:
+        target = _get_or_create_session_doll(request)
+
+    # Восстанавливаем из снимка
+    target.character_level = state.get('character_level', 1)
+    target.save(update_fields=['character_level'])
+
+    for slot_type, slot_data in state.get('slots', {}).items():
+        tgt_slot, _ = DollSlot.objects.get_or_create(doll=target, slot_type=slot_type)
+        tgt_slot.item_id = slot_data.get('item_id')
+        tgt_slot.save(update_fields=['item'])
+        tgt_slot.custom_stats.all().delete()
+        for stat_id, value in slot_data.get('stats', {}).items():
+            DollSlotStat.objects.create(doll_slot=tgt_slot, stat_id=int(stat_id), value=value)
+
+    target.skill_points.all().delete()
+    for node_id, points in state.get('skills', {}).items():
+        if points > 0:
+            try:
+                from skills.models import SkillNode
+                node = SkillNode.objects.get(pk=int(node_id))
+                DollSkill.objects.create(doll=target, node=node, points_invested=points)
+            except Exception:
+                pass
+
+    save_stats_snapshot(target)
+    return _render_index(request)
 
 
 @require_POST
@@ -238,9 +268,12 @@ def api_select_item(request):
         doll_slot.custom_stats.all().delete()
     else:
         item = get_object_or_404(Item, pk=item_id, slot_type=slot_type)
+        # Если предмет сменился — чистим старые статы
+        if doll_slot.item_id != item.pk:
+            doll_slot.custom_stats.all().delete()
         doll_slot.item = item
         doll_slot.save()
-        # Копируем базовые статы как кастомные (если ещё нет)
+        # Копируем базовые статы нового предмета (если ещё нет)
         existing_stat_ids = set(doll_slot.custom_stats.values_list('stat_id', flat=True))
         for item_stat in item.stats.select_related('stat').all():
             if item_stat.stat_id not in existing_stat_ids:
@@ -388,14 +421,14 @@ def api_reset_skills(request):
 @require_POST
 @login_required
 def api_save_doll(request):
+    """API: сохранить куклу — записывает полное состояние."""
     data = json.loads(request.body)
     doll = get_object_or_404(Doll, pk=data.get('doll_id'), owner=request.user)
     name = data.get('name', '').strip()
     if name:
         doll.name = name[:64]
-    level = data.get('character_level')
-    if level is not None:
-        doll.character_level = max(1, min(200, int(level)))
+        doll.save(update_fields=['name'])
+    save_doll_state(doll)
     save_stats_snapshot(doll)
     return JsonResponse({
         'ok': True,
@@ -506,4 +539,95 @@ def api_get_comparison_doll(request):
         'available_points': get_available_points(fresh_doll),
         'slots': doll_slots,
         'invested_map': invested_map,
+    })
+
+
+@require_POST
+@login_required
+def api_copy_doll(request):
+    """API: сохранить текущую (временную или обычную) куклу в слот пользователя."""
+    data = json.loads(request.body)
+    slot_order = int(data.get('slot_order', 0))
+    source_id = data.get('doll_id')
+
+    source = get_object_or_404(Doll, pk=source_id)
+
+    target, created = Doll.objects.get_or_create(
+        owner=request.user,
+        slot_order=slot_order,
+        defaults={'name': source.name if source.name != '__temp__' else 'Кукла ' + str(slot_order + 1)},
+    )
+    if not created:
+        target.name = source.name if source.name != '__temp__' else target.name
+        target.character_level = source.character_level
+        target.save()
+
+    if created:
+        for slot_type, _ in SlotType.choices:
+            DollSlot.objects.create(doll=target, slot_type=slot_type)
+
+    for src_slot in source.slots.select_related('item').prefetch_related('custom_stats__stat').all():
+        tgt_slot, _ = DollSlot.objects.get_or_create(doll=target, slot_type=src_slot.slot_type)
+        tgt_slot.item = src_slot.item
+        tgt_slot.save()
+        tgt_slot.custom_stats.all().delete()
+        for cs in src_slot.custom_stats.all():
+            DollSlotStat.objects.create(doll_slot=tgt_slot, stat=cs.stat, value=cs.value)
+
+    target.skill_points.all().delete()
+    for sp in source.skill_points.all():
+        DollSkill.objects.create(doll=target, node=sp.node, points_invested=sp.points_invested)
+
+    target.character_level = source.character_level
+    save_stats_snapshot(target)
+
+    return JsonResponse({'ok': True, 'slot_order': slot_order})
+
+
+@require_POST
+@login_required
+def api_load_doll(request):
+    """API: загрузить сохранённое состояние куклы."""
+    data = json.loads(request.body)
+    doll = get_object_or_404(Doll, pk=data.get('doll_id'), owner=request.user)
+    if not doll.saved_state:
+        return JsonResponse({'ok': False, 'error': 'Нет сохранённого состояния'})
+    restored = restore_doll_state(doll)
+    if restored:
+        fresh = Doll.objects.get(pk=doll.pk)
+        return JsonResponse({'ok': True, 'redirect': f'/?slot={doll.slot_order}'})
+    return JsonResponse({'ok': False, 'error': 'Ошибка восстановления'})
+
+
+@require_POST
+@login_required
+def api_create_snapshot(request):
+    """API: создать снимок куклы для публичной ссылки."""
+    data = json.loads(request.body)
+    doll = get_object_or_404(Doll, pk=data.get('doll_id'), owner=request.user)
+
+    # Собираем текущее состояние
+    slots = {}
+    for ds in doll.slots.select_related('item').prefetch_related('custom_stats__stat').all():
+        slots[ds.slot_type] = {
+            'item_id': ds.item_id,
+            'stats': {str(cs.stat_id): cs.value for cs in ds.custom_stats.all()}
+        }
+    skills = {
+        str(sp.node_id): sp.points_invested
+        for sp in doll.skill_points.all()
+    }
+    state = {
+        'character_level': doll.character_level,
+        'slots': slots,
+        'skills': skills,
+        'doll_name': doll.name,
+    }
+
+    from .models import DollSnapshot
+    snapshot = DollSnapshot.objects.create(doll=doll, state=state)
+
+    return JsonResponse({
+        'ok': True,
+        'url': request.build_absolute_uri(f'/share/{snapshot.uuid}/'),
     })

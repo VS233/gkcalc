@@ -17,6 +17,7 @@ class Doll(models.Model):
     name = models.CharField(max_length=64, default='Моя кукла', verbose_name='Название')
     character_level = models.PositiveSmallIntegerField(default=1, verbose_name='Уровень персонажа')
     stats_snapshot = models.JSONField(default=dict, blank=True)
+    saved_state = models.JSONField(default=dict, blank=True)  # сохранённое состояние по кнопке "Сохранить"
     slot_order = models.PositiveSmallIntegerField(default=0, verbose_name='Номер слота')
     is_public = models.BooleanField(default=True, verbose_name='Публичная ссылка')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -135,3 +136,18 @@ class DollSkill(models.Model):
 
     def __str__(self):
         return f'{self.doll.name} / {self.node}'
+
+
+class DollSnapshot(models.Model):
+    """Снимок куклы для публичной ссылки — не меняется после создания."""
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
+    doll = models.ForeignKey(Doll, on_delete=models.CASCADE, related_name='snapshots')
+    state = models.JSONField()  # полное состояние на момент создания
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Снимок куклы'
+        verbose_name_plural = 'Снимки кукол'
+
+    def __str__(self):
+        return f'Снимок {self.doll.name} от {self.created_at:%d.%m.%Y %H:%M}'

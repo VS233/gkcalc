@@ -208,3 +208,61 @@ def get_active_effects(doll):
             })
 
     return effects
+
+
+def save_doll_state(doll):
+    """Сохраняет полное состояние куклы в saved_state."""
+    slots = {}
+    for ds in doll.slots.select_related('item').prefetch_related('custom_stats__stat').all():
+        slots[ds.slot_type] = {
+            'item_id': ds.item_id,
+            'stats': {cs.stat_id: cs.value for cs in ds.custom_stats.all()}
+        }
+    skills = {
+        str(sp.node_id): sp.points_invested
+        for sp in doll.skill_points.all()
+    }
+    doll.saved_state = {
+        'character_level': doll.character_level,
+        'slots': slots,
+        'skills': skills,
+    }
+    doll.save(update_fields=['saved_state'])
+
+
+def restore_doll_state(doll):
+    """Восстанавливает состояние куклы из saved_state."""
+    from catalog.models import Item
+    from .models import DollSlot, DollSlotStat, DollSkill
+    from skills.models import SkillNode
+
+    state = doll.saved_state
+    if not state:
+        return False
+
+    # Уровень
+    doll.character_level = state.get('character_level', 1)
+    doll.save(update_fields=['character_level'])
+
+    # Слоты
+    for slot_type, slot_data in state.get('slots', {}).items():
+        ds, _ = DollSlot.objects.get_or_create(doll=doll, slot_type=slot_type)
+        item_id = slot_data.get('item_id')
+        ds.item_id = item_id
+        ds.save(update_fields=['item'])
+        ds.custom_stats.all().delete()
+        for stat_id, value in slot_data.get('stats', {}).items():
+            DollSlotStat.objects.create(doll_slot=ds, stat_id=int(stat_id), value=value)
+
+    # Навыки
+    doll.skill_points.all().delete()
+    for node_id, points in state.get('skills', {}).items():
+        if points > 0:
+            try:
+                node = SkillNode.objects.get(pk=int(node_id))
+                DollSkill.objects.create(doll=doll, node=node, points_invested=points)
+            except SkillNode.DoesNotExist:
+                pass
+
+    save_stats_snapshot(doll)
+    return True

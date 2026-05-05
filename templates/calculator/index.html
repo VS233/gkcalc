@@ -18,6 +18,7 @@
   {% endif %}
   <button class="btn-gkc" style="font-size:0.7rem;padding:4px 10px;" onclick="saveDoll()">💾 Сохранить</button>
   <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:4px 10px;" onclick="copyShareLink()">🔗 Ссылка</button>
+  <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:4px 10px;" onclick="loadDoll()">📂 Загрузить</button>
 </div>
 {% endif %}
 
@@ -1095,9 +1096,22 @@ async function saveDoll() {
   if (res.ok) showToast('Кукла сохранена!');
 }
 
-function copyShareLink() {
-  const url = window.location.origin + '/share/' + DOLL_UUID + '/';
-  navigator.clipboard.writeText(url).then(() => showToast('Ссылка скопирована!'));
+function loadDoll() {
+  if (!confirm('Загрузить сохранённую версию? Несохранённые изменения будут потеряны.')) return;
+  gkcPost("{% url 'calculator:api_load_doll' %}", { doll_id: DOLL_ID }).then(res => {
+    if (res.ok) {
+      window.location.href = res.redirect;
+    } else {
+      showToast(res.error || 'Нет сохранённого состояния', 3000);
+    }
+  });
+}
+
+async function copyShareLink() {
+  const res = await gkcPost("{% url 'calculator:api_create_snapshot' %}", { doll_id: DOLL_ID });
+  if (res.ok) {
+    navigator.clipboard.writeText(res.url).then(() => showToast('Ссылка скопирована!'));
+  }
 }
 
 // ══════════════════════════════════════════════════════

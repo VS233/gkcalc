@@ -3,7 +3,52 @@
    Тёмная тема по умолчанию, переключатель через data-theme="light"
    ============================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&display=swap');
+/* ── Локальные шрифты ── */
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('/static/fonts/rajdhani-v17-latin-300.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('/static/fonts/rajdhani-v17-latin-regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('/static/fonts/rajdhani-v17-latin-500.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('/static/fonts/rajdhani-v17-latin-600.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('/static/fonts/rajdhani-v17-latin-700.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Exo 2';
+  src: url('/static/fonts/exo-2-v26-latin-300.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Exo 2';
+  src: url('/static/fonts/exo-2-v26-latin-regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Exo 2';
+  src: url('/static/fonts/exo-2-v26-latin-500.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Exo 2';
+  src: url('/static/fonts/exo-2-v26-latin-600.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
 
 :root {
   --bg-primary:    #0d0f14;
