@@ -94,21 +94,21 @@
         <div class="item-slot {% if slot.item %}has-item{% endif %}"
              onclick="openSlotModal('main_weapon', 'Осн. оружие', {% if doll_slots|get_item:'main_weapon'  %}{% if doll_slots|get_item:'main_weapon'  %}{% with s=doll_slots|get_item:'main_weapon' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
              title="Осн. оружие">
-          {% with slot_obj=doll_slots|get_item:"main_weapon" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Осн. оружие</span>{% else %}<div class="item-slot-name">Осн. оружие</div>{% endif %}{% endwith %}
+          {% with slot_obj=doll_slots|get_item:"main_weapon" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Осн. оружие</span>{% else %}<div class="item-slot-name">Осн. оружие</div>{% endif %}{% endwith %}
         </div>
         {% endwith %}
         {% with slot=doll_slots|get_item:"helmet" %}
         <div class="item-slot {% if slot.item %}has-item{% endif %}"
              onclick="openSlotModal('helmet', 'Шлем', {% if doll_slots|get_item:'helmet'  %}{% if doll_slots|get_item:'helmet'  %}{% with s=doll_slots|get_item:'helmet' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
              title="Шлем">
-          {% with slot_obj=doll_slots|get_item:"helmet" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Шлем</span>{% else %}<div class="item-slot-name">Шлем</div>{% endif %}{% endwith %}
+          {% with slot_obj=doll_slots|get_item:"helmet" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Шлем</span>{% else %}<div class="item-slot-name">Шлем</div>{% endif %}{% endwith %}
         </div>
         {% endwith %}
         {% with slot=doll_slots|get_item:"armor" %}
         <div class="item-slot {% if slot.item %}has-item{% endif %}"
              onclick="openSlotModal('armor', 'Броня', {% if doll_slots|get_item:'armor'  %}{% if doll_slots|get_item:'armor'  %}{% with s=doll_slots|get_item:'armor' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
              title="Броня">
-          {% with slot_obj=doll_slots|get_item:"armor" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Броня</span>{% else %}<div class="item-slot-name">Броня</div>{% endif %}{% endwith %}
+          {% with slot_obj=doll_slots|get_item:"armor" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Броня</span>{% else %}<div class="item-slot-name">Броня</div>{% endif %}{% endwith %}
         </div>
         {% endwith %}
       </div>
@@ -128,14 +128,14 @@
         <div class="item-slot {% if slot.item %}has-item{% endif %}"
              onclick="openSlotModal('off_weapon', 'Доп. оружие', {% if doll_slots|get_item:'off_weapon'  %}{% if doll_slots|get_item:'off_weapon'  %}{% with s=doll_slots|get_item:'off_weapon' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
              title="Доп. оружие">
-          {% with slot_obj=doll_slots|get_item:"off_weapon" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Доп. оружие</span>{% else %}<div class="item-slot-name">Доп. оружие</div>{% endif %}{% endwith %}
+          {% with slot_obj=doll_slots|get_item:"off_weapon" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Доп. оружие</span>{% else %}<div class="item-slot-name">Доп. оружие</div>{% endif %}{% endwith %}
         </div>
         {% endwith %}
         {% with slot=doll_slots|get_item:"amplifier" %}
         <div class="item-slot {% if slot.item %}has-item{% endif %}"
              onclick="openSlotModal('amplifier', 'Усилитель', {% if doll_slots|get_item:'amplifier'  %}{% if doll_slots|get_item:'amplifier'  %}{% with s=doll_slots|get_item:'amplifier' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
              title="Усилитель">
-          {% with slot_obj=doll_slots|get_item:"amplifier" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Усилитель</span>{% else %}<div class="item-slot-name">Усилитель</div>{% endif %}{% endwith %}
+          {% with slot_obj=doll_slots|get_item:"amplifier" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Усилитель</span>{% else %}<div class="item-slot-name">Усилитель</div>{% endif %}{% endwith %}
         </div>
         {% endwith %}
         <!-- Нижний ряд: дух-хранитель + аксессуар -->
@@ -144,14 +144,14 @@
         <div class="item-slot item-slot-sm {% if slot.item %}has-item{% endif %}"
              onclick="openSlotModal('guardian', 'Дух', {% if doll_slots|get_item:'guardian'  %}{% if doll_slots|get_item:'guardian'  %}{% with s=doll_slots|get_item:'guardian' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
              title="Дух">
-          {% with slot_obj=doll_slots|get_item:"guardian" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Дух</span>{% else %}<div class="item-slot-name">Дух</div>{% endif %}{% endwith %}
+          {% with slot_obj=doll_slots|get_item:"guardian" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Дух</span>{% else %}<div class="item-slot-name">Дух</div>{% endif %}{% endwith %}
         </div>
         {% endwith %}
         {% with slot=doll_slots|get_item:"accessory" %}
         <div class="item-slot {% if slot.item %}has-item{% endif %}"
              onclick="openSlotModal('accessory', 'Аксессуар', {% if doll_slots|get_item:'accessory'  %}{% if doll_slots|get_item:'accessory'  %}{% with s=doll_slots|get_item:'accessory' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
              title="Аксессуар">
-          {% with slot_obj=doll_slots|get_item:"accessory" %}{% if slot_obj.item %}<img src="{{ slot_obj.item.image.url }}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Аксессуар</span>{% else %}<div class="item-slot-name">Аксессуар</div>{% endif %}{% endwith %}
+          {% with slot_obj=doll_slots|get_item:"accessory" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Аксессуар</span>{% else %}<div class="item-slot-name">Аксессуар</div>{% endif %}{% endwith %}
         </div>
         {% endwith %}
         </div>
@@ -882,6 +882,29 @@ const SLOT_LABELS = {
   accessory:'Аксессуар', guardian:'Дух'
 };
 
+
+function buildItemChip(item, onclickFn) {
+  const color = RARITY_COLORS[item.rarity] || 'var(--border)';
+  const inner = item.image_url
+    ? `<img src="${item.image_url}" alt="${item.name}"
+            style="width:100%;height:100%;object-fit:contain;"
+            onerror="this.style.display='none';this.parentElement.querySelector('.chip-label').style.display='block'"
+            title="${item.name}">
+       <span class="chip-label" style="display:none;font-size:0.6rem;text-align:center;padding:2px;">${item.name}</span>`
+    : `<span style="font-size:0.6rem;text-align:center;padding:2px;color:var(--text-secondary);">${item.name}</span>`;
+  return `<div onclick="${onclickFn}"
+               title="${item.name} (${SLOT_LABELS[item.slot_type]||item.slot_type})"
+               style="display:inline-flex;align-items:center;justify-content:center;
+                      width:48px;height:48px;background:var(--bg-card);
+                      border:2px solid ${color};border-radius:6px;
+                      cursor:pointer;margin:2px;overflow:hidden;
+                      transition:transform 0.15s,box-shadow 0.15s;"
+               onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 0 8px ${color}'"
+               onmouseout="this.style.transform='';this.style.boxShadow=''">
+            ${inner}
+          </div>`;
+}
+
 function buildAccordion() {
   const acc = document.getElementById('sets-accordion');
   if (!acc) return;
@@ -917,13 +940,9 @@ function buildAccordionSection(label, rarity, sets, open) {
   sets.forEach(set => {
     const setDiv = document.createElement('div');
     setDiv.style.cssText = 'margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);';
-    let itemsHtml = set.items.map(it => `
-      <span class="set-item-chip" onclick="equipSingleItem(${it.id}, '${it.slot_type}')"
-            style="display:inline-block;background:var(--bg-card);border:1px solid ${RARITY_COLORS[it.rarity]||'var(--border)'};
-                   border-radius:4px;padding:2px 7px;font-size:0.68rem;cursor:pointer;margin:2px;
-                   color:var(--text-secondary);" title="${SLOT_LABELS[it.slot_type]||it.slot_type}">
-        ${it.name}
-      </span>`).join('');
+    let itemsHtml = set.items.map(it =>
+      buildItemChip(it, `equipSingleItem(${it.id}, '${it.slot_type}')`)
+    ).join('');
     setDiv.innerHTML = `
       <div style="font-size:0.75rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;">${set.name}</div>
       <div style="margin-bottom:5px;">${itemsHtml}</div>
@@ -956,13 +975,9 @@ function buildNoSetSection() {
   const body = document.createElement('div');
   body.style.cssText = 'display:none;background:var(--bg-secondary);padding:6px 8px;';
 
-  let itemsHtml = NO_SET_ITEMS.map(it => `
-    <span onclick="equipSingleItem(${it.id}, '${it.slot_type}')"
-          style="display:inline-block;background:var(--bg-card);border:1px solid ${RARITY_COLORS[it.rarity]||'var(--border)'};
-                 border-radius:4px;padding:2px 7px;font-size:0.68rem;cursor:pointer;margin:2px;
-                 color:var(--text-secondary);" title="${SLOT_LABELS[it.slot_type]||it.slot_type}">
-      ${it.name}
-    </span>`).join('');
+  let itemsHtml = NO_SET_ITEMS.map(it =>
+    buildItemChip(it, `equipSingleItem(${it.id}, '${it.slot_type}')`)
+  ).join('');
   body.innerHTML = itemsHtml;
 
   header.onclick = () => {
@@ -1189,14 +1204,20 @@ function compRenderStats(compStats) {
     let color = stat.category === 'power' ? 'var(--power-color)' : 'var(--resist-color)';
     let diffHtml = '';
 
-    if (leftVal !== 0 && Math.abs(val - leftVal) > 0.01) {
-      const diff = Math.round((val - leftVal) / Math.abs(leftVal) * 100);
+    if (Math.abs(val - leftVal) > 0.01) {
+      let diffText;
+      if (leftVal === 0) {
+        diffText = val > 0 ? '+' : '-';
+      } else {
+        const pct = Math.round((val - leftVal) / Math.abs(leftVal) * 100);
+        diffText = (pct > 0 ? '+' : '') + pct + '%';
+      }
       if (val > leftVal) {
         color = '#22c55e';
-        diffHtml = `<span style="font-size:0.62rem;color:#22c55e">(+${diff}%)</span>`;
+        diffHtml = `<span style="font-size:0.62rem;color:#22c55e">(${diffText})</span>`;
       } else {
         color = '#ef4444';
-        diffHtml = `<span style="font-size:0.62rem;color:#ef4444">(${diff}%)</span>`;
+        diffHtml = `<span style="font-size:0.62rem;color:#ef4444">(${diffText})</span>`;
       }
     }
 
@@ -1468,10 +1489,8 @@ function compBuildAccordion() {
       const div = document.createElement('div');
       div.style.marginBottom = '5px';
       let chips = set.items.map(it =>
-        `<span onclick="compEquipSingle(${it.id},'${it.slot_type}')"
-               style="display:inline-block;background:var(--bg-card);border:1px solid ${RARITY_COLORS[it.rarity]||'var(--border)'};
-                      border-radius:3px;padding:1px 5px;font-size:0.62rem;cursor:pointer;margin:1px;">
-           ${it.name}</span>`).join('');
+        buildItemChip(it, `compEquipSingle(${it.id},'${it.slot_type}')`)
+      ).join('');
       div.innerHTML = `<div style="font-size:0.68rem;font-weight:600;margin-bottom:2px;">${set.name}</div>
         <div>${chips}</div>
         <button class="btn-gkc" style="font-size:0.58rem;padding:2px 5px;margin-top:2px;"
@@ -1486,6 +1505,28 @@ function compBuildAccordion() {
     wrap.appendChild(header); wrap.appendChild(body);
     acc.appendChild(wrap);
   });
+
+  // Без сета
+  if (NO_SET_ITEMS.length > 0) {
+    const wrap2 = document.createElement('div');
+    wrap2.style.cssText = 'border:1px solid var(--border);border-radius:5px;margin-bottom:3px;overflow:hidden;';
+    const header2 = document.createElement('div');
+    header2.style.cssText = `display:flex;justify-content:space-between;padding:4px 8px;cursor:pointer;background:var(--bg-card);`;
+    header2.innerHTML = `<span style="font-size:0.7rem;font-weight:600;color:var(--text-muted);">Без сета</span>
+      <span class="acc-arrow" style="font-size:0.6rem;color:var(--text-muted);">▼</span>`;
+    const body2 = document.createElement('div');
+    body2.style.cssText = 'display:none;background:var(--bg-secondary);padding:4px 6px;';
+    body2.innerHTML = NO_SET_ITEMS.map(it =>
+      buildItemChip(it, `compEquipSingle(${it.id},'${it.slot_type}')`)
+    ).join('');
+    header2.onclick = () => {
+      const open = body2.style.display !== 'none';
+      body2.style.display = open ? 'none' : 'block';
+      header2.querySelector('.acc-arrow').textContent = open ? '▼' : '▲';
+    };
+    wrap2.appendChild(header2); wrap2.appendChild(body2);
+    acc.appendChild(wrap2);
+  }
 }
 
 async function compEquipSingle(itemId, slotType) {

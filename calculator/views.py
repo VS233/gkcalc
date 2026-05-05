@@ -69,16 +69,18 @@ def _get_or_create_comparison_doll(request):
 
 def _get_doll(request, doll_id=None):
     """Получить куклу для текущего пользователя или гостя."""
+    comp_id = request.session.get('comparison_doll_id')
+
+    # Если запрашивается кукла сравнения — она всегда owner=None
+    if doll_id and comp_id and int(doll_id) == comp_id:
+        return get_object_or_404(Doll, pk=doll_id, owner=None, name='__comparison__')
+
     if request.user.is_authenticated:
         return get_object_or_404(Doll, pk=doll_id, owner=request.user)
     else:
-        # Для гостя — используем переданный doll_id напрямую
-        # (работает и для основной куклы и для куклы сравнения)
         if doll_id:
-            # Проверяем что кукла принадлежит этой сессии
             guest_id = request.session.get('guest_doll_id')
-            comp_id = request.session.get('comparison_doll_id')
-            if int(doll_id) in [guest_id, comp_id]:
+            if guest_id and int(doll_id) == guest_id:
                 return get_object_or_404(Doll, pk=doll_id, owner=None)
         guest_id = request.session.get('guest_doll_id')
         return get_object_or_404(Doll, pk=guest_id, owner=None)
@@ -131,7 +133,15 @@ def index(request):
         sets = ItemSet.objects.filter(rarity=rarity).prefetch_related('items')
         set_list = []
         for s in sets:
-            items_in_set = list(s.items.filter(is_active=True).values('id', 'name', 'slot_type', 'rarity'))
+            items_in_set = []
+            for it in s.items.filter(is_active=True):
+                items_in_set.append({
+                    'id': it.id,
+                    'name': it.name,
+                    'slot_type': it.slot_type,
+                    'rarity': it.rarity,
+                    'image_url': it.image.url if it.image and it.image.name else None,
+                })
             if items_in_set:
                 set_list.append({'id': s.id, 'name': s.name, 'items': items_in_set})
         if set_list:
@@ -142,11 +152,15 @@ def index(request):
             })
 
     # Предметы без сета
-    no_set_items = list(
-        Item.objects.filter(item_set__isnull=True, is_active=True)
-        .values('id', 'name', 'slot_type', 'rarity')
-        .order_by('rarity', 'name')
-    )
+    no_set_items = []
+    for it in Item.objects.filter(item_set__isnull=True, is_active=True).order_by('rarity', 'name'):
+        no_set_items.append({
+            'id': it.id,
+            'name': it.name,
+            'slot_type': it.slot_type,
+            'rarity': it.rarity,
+            'image_url': it.image.url if it.image and it.image.name else None,
+        })
 
     # Данные узлов навыков с бонусами для JS расчёта
     skill_nodes_data = []
@@ -260,7 +274,7 @@ def api_select_item(request):
         'slot_stats': slot_stats,
         'item_name': doll_slot.item.name if doll_slot.item else None,
         'item_rarity': doll_slot.item.rarity if doll_slot.item else None,
-        'image_url': doll_slot.item.image.url if doll_slot.item and doll_slot.item.image else None,
+        'image_url': doll_slot.item.image.url if doll_slot.item and doll_slot.item.image and doll_slot.item.image.name else None,
     })
 
 
@@ -458,7 +472,7 @@ def api_get_item_stats(request):
         'item_name': item.name,
         'rarity': item.rarity,
         'set_id': item.item_set_id,
-        'image_url': item.image.url if item.image else None,
+        'image_url': item.image.url if item.image and item.image.name else None,
         'stats': stats,
     })
 
@@ -476,7 +490,7 @@ def api_get_comparison_doll(request):
             'item_id': ds.item_id,
             'item_name': ds.item.name if ds.item else None,
             'item_rarity': ds.item.rarity if ds.item else None,
-            'image_url': ds.item.image.url if ds.item and ds.item.image else None,
+            'image_url': ds.item.image.url if ds.item and ds.item.image and ds.item.image.name else None,
         }
 
     invested_map = {
