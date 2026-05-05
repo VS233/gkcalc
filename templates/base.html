@@ -54,12 +54,24 @@ function getCookie(name) {
   return v ? v.pop() : '';
 }
 async function gkcPost(url, data) {
-  const r = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-    body: JSON.stringify(data),
-  });
-  return r.json();
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify(data),
+    });
+    if (!r.ok) {
+      const text = await r.text();
+      console.error('API error', r.status, url, text.slice(0, 200));
+      showToast('Ошибка сервера (' + r.status + '). Попробуйте ещё раз.', 3000);
+      return { ok: false, error: 'server_error', status: r.status };
+    }
+    return r.json();
+  } catch (err) {
+    console.error('Network error', url, err);
+    showToast('Нет соединения с сервером. Проверьте интернет.', 3000);
+    return { ok: false, error: 'network_error' };
+  }
 }
 </script>
 

@@ -13,7 +13,8 @@ from .services import (
     get_spent_points, is_over_budget,
     can_unlock_node, can_remove_point, save_stats_snapshot,
     calculate_doll_stats, get_active_effects,
-    save_doll_state, restore_doll_state
+    save_doll_state, restore_doll_state,
+    build_index_context, restore_doll_from_snapshot, build_doll_snapshot_state
 )
 
 
@@ -103,111 +104,7 @@ def _render_index(request):
         user_dolls = []
         slot = None
 
-    doll_slots = {
-        ds.slot_type: ds
-        for ds in doll.slots.select_related('item').prefetch_related('custom_stats__stat').all()
-    }
-
-    grouped_stats = get_stats_grouped(doll)
-    available_points = get_available_points(doll)
-
-    skill_nodes = SkillNode.objects.prefetch_related('bonuses__stat', 'edges_to').order_by('order', 'branch')
-    skill_edges = SkillEdge.objects.select_related('from_node', 'to_node').all()
-    invested_map = {
-        ds.node_id: ds.points_invested
-        for ds in doll.skill_points.all()
-    }
-
-    items_by_slot = {}
-    for slot_type, _ in SlotType.choices:
-        items_by_slot[slot_type] = list(
-            Item.objects.filter(slot_type=slot_type, is_active=True).values('id', 'name', 'rarity')
-        )
-
-    from catalog.models import Stat, ItemSet, Rarity
-    all_stats = list(Stat.objects.values('id', 'name_ru', 'slug', 'category', 'is_percent').order_by('order'))
-
-    # Сеты сгруппированные по редкости сета (по убыванию)
-    rarity_order = [r.value for r in [
-        Rarity.LEGENDARY, Rarity.LIMITED, Rarity.CRAFTED,
-        Rarity.EPIC, Rarity.RARE, Rarity.UNCOMMON, Rarity.COMMON
-    ]]
-    rarity_labels = dict(Rarity.choices)
-
-    sets_by_rarity = []
-    for rarity in rarity_order:
-        sets = ItemSet.objects.filter(rarity=rarity).prefetch_related('items')
-        set_list = []
-        for s in sets:
-            items_in_set = []
-            for it in s.items.filter(is_active=True):
-                items_in_set.append({
-                    'id': it.id,
-                    'name': it.name,
-                    'slot_type': it.slot_type,
-                    'rarity': it.rarity,
-                    'image_url': it.image.url if it.image and it.image.name else None,
-                })
-            if items_in_set:
-                set_list.append({'id': s.id, 'name': s.name, 'items': items_in_set})
-        if set_list:
-            sets_by_rarity.append({
-                'rarity': rarity,
-                'label': rarity_labels.get(rarity, rarity),
-                'sets': set_list,
-            })
-
-    # Предметы без сета
-    no_set_items = []
-    for it in Item.objects.filter(item_set__isnull=True, is_active=True).order_by('rarity', 'name'):
-        no_set_items.append({
-            'id': it.id,
-            'name': it.name,
-            'slot_type': it.slot_type,
-            'rarity': it.rarity,
-            'image_url': it.image.url if it.image and it.image.name else None,
-        })
-
-    # Данные узлов навыков с бонусами для JS расчёта
-    skill_nodes_data = []
-    for node in skill_nodes:
-        bonuses = []
-        for b in node.bonuses.all():
-            bonuses.append({
-                'stat_slug': b.stat.slug,
-                'v1': b.value_level_1,
-                'v2': b.value_level_2,
-                'v3': b.value_level_3,
-            })
-        skill_nodes_data.append({
-            'id': node.pk,
-            'branch': node.branch,
-            'order': node.order,
-            'max_points': node.max_points,
-            'bonuses': bonuses,
-        })
-
-    context = {
-        'doll': doll,
-        'doll_slots': doll_slots,
-        'slot_types': SlotType.choices,
-        'grouped_stats': grouped_stats,
-        'available_points': available_points,
-        'is_over_budget': is_over_budget(doll),
-        'active_effects': get_active_effects(doll),
-        'skill_nodes': skill_nodes,
-        'skill_edges': skill_edges,
-        'invested_map': invested_map,
-        'items_by_slot': json.dumps(items_by_slot),
-        'all_stats': json.dumps(all_stats),
-        'sets_by_rarity': json.dumps(sets_by_rarity),
-        'no_set_items': json.dumps(no_set_items),
-        'skill_nodes_data': json.dumps(skill_nodes_data),
-        'base_character_stats': json.dumps(settings.BASE_CHARACTER_STATS),
-        'user_dolls': user_dolls,
-        'active_slot': slot,
-        'doll_slots_count': settings.DOLL_SLOTS_PER_USER,
-    }
+    context = build_index_context(request, doll, user_dolls, slot, settings)
     return render(request, 'calculator/index.html', context)
 
 
@@ -215,9 +112,7 @@ def doll_public(request, uuid):
     """Открыть снимок куклы по ссылке."""
     from .models import DollSnapshot
     snapshot = get_object_or_404(DollSnapshot, uuid=uuid)
-    state = snapshot.state
 
-    # Определяем целевую куклу
     if request.user.is_authenticated:
         slot = int(request.GET.get('slot', 0))
         slot = max(0, min(slot, settings.DOLL_SLOTS_PER_USER - 1))
@@ -225,29 +120,7 @@ def doll_public(request, uuid):
     else:
         target = _get_or_create_session_doll(request)
 
-    # Восстанавливаем из снимка
-    target.character_level = state.get('character_level', 1)
-    target.save(update_fields=['character_level'])
-
-    for slot_type, slot_data in state.get('slots', {}).items():
-        tgt_slot, _ = DollSlot.objects.get_or_create(doll=target, slot_type=slot_type)
-        tgt_slot.item_id = slot_data.get('item_id')
-        tgt_slot.save(update_fields=['item'])
-        tgt_slot.custom_stats.all().delete()
-        for stat_id, value in slot_data.get('stats', {}).items():
-            DollSlotStat.objects.create(doll_slot=tgt_slot, stat_id=int(stat_id), value=value)
-
-    target.skill_points.all().delete()
-    for node_id, points in state.get('skills', {}).items():
-        if points > 0:
-            try:
-                from skills.models import SkillNode
-                node = SkillNode.objects.get(pk=int(node_id))
-                DollSkill.objects.create(doll=target, node=node, points_invested=points)
-            except Exception:
-                pass
-
-    save_stats_snapshot(target)
+    restore_doll_from_snapshot(target, snapshot.state)
     return _render_index(request)
 
 
@@ -605,28 +478,9 @@ def api_create_snapshot(request):
     """API: создать снимок куклы для публичной ссылки."""
     data = json.loads(request.body)
     doll = get_object_or_404(Doll, pk=data.get('doll_id'), owner=request.user)
-
-    # Собираем текущее состояние
-    slots = {}
-    for ds in doll.slots.select_related('item').prefetch_related('custom_stats__stat').all():
-        slots[ds.slot_type] = {
-            'item_id': ds.item_id,
-            'stats': {str(cs.stat_id): cs.value for cs in ds.custom_stats.all()}
-        }
-    skills = {
-        str(sp.node_id): sp.points_invested
-        for sp in doll.skill_points.all()
-    }
-    state = {
-        'character_level': doll.character_level,
-        'slots': slots,
-        'skills': skills,
-        'doll_name': doll.name,
-    }
-
     from .models import DollSnapshot
+    state = build_doll_snapshot_state(doll)
     snapshot = DollSnapshot.objects.create(doll=doll, state=state)
-
     return JsonResponse({
         'ok': True,
         'url': request.build_absolute_uri(f'/share/{snapshot.uuid}/'),
