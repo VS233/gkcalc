@@ -724,7 +724,7 @@ html, body {
   /* Кнопка "📚 Навыки" — фиксированно сверху справа */
   .skills-toggle-btn {
     position: fixed;
-    top: 56px;
+    top: 326px;
     right: 8px;
     z-index: 500;
     background: var(--bg-card);
