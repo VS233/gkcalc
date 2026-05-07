@@ -25,6 +25,15 @@ def _get_or_create_session_doll(request):
             return Doll.objects.get(pk=doll_id, owner=None)
         except Doll.DoesNotExist:
             pass
+
+    # Создаём новую гостевую куклу — заодно чистим старые (>6 дней)
+    from django.utils import timezone
+    from datetime import timedelta
+    Doll.objects.filter(
+        owner=None,
+        updated_at__lt=timezone.now() - timedelta(days=6)
+    ).delete()
+
     doll = Doll.objects.create(owner=None)
     for slot_type, _ in SlotType.choices:
         DollSlot.objects.create(doll=doll, slot_type=slot_type)
