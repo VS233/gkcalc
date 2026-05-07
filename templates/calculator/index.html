@@ -8,7 +8,7 @@
 {% csrf_token %}
 
 {% if user.is_authenticated %}
-<div style="padding:4px 8px;background:var(--bg-secondary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+<div style="padding:4px 8px;background:var(--bg-secondary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
   <span style="font-size:0.75rem;color:var(--text-muted)">Слот:</span>
   {% for d in user_dolls %}
     <a href="?slot={{ d.slot_order }}" class="doll-tab {% if d.slot_order == active_slot %}active{% endif %}">{{ d.name }}</a>
@@ -16,7 +16,7 @@
   {% if user_dolls|length < doll_slots_count %}
     <a href="?slot={{ user_dolls|length }}" class="doll-tab">+ Новая</a>
   {% endif %}
-  <div style="display:flex;gap:4px;margin-left:auto;">
+  <div style="display:flex;gap:4px;">
     <button class="btn-gkc" style="font-size:0.7rem;padding:4px 8px;" onclick="saveDoll()">💾</button>
     <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:4px 8px;" onclick="copyShareLink()">🔗</button>
     <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:4px 8px;" onclick="loadDoll()">📂</button>
