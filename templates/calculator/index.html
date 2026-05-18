@@ -121,7 +121,6 @@
       <div class="char-avatar">
         <img src="{% static 'images/character.png' %}" alt="Персонаж" style="width:100%;height:100%;object-fit:contain;">
       </div>
-        
       </div>
 
       <!-- Правая колонка: доп.оружие, усилитель, [дух + аксессуар] -->
@@ -165,7 +164,7 @@
         <div style="font-family:var(--font-display);font-size:0.9rem;color:var(--accent);">{{ doll.name }}</div>
         <div style="font-size:0.7rem;color:var(--text-muted);">Уровень {{ doll.character_level }}</div>
       </div>
-      
+
     <input type="hidden" id="doll-id" value="{{ doll.pk }}">
     <input type="hidden" id="doll-uuid" value="{{ doll.uuid }}">
 
@@ -193,42 +192,59 @@
         </span>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;margin-bottom:6px;">
+      <!-- Вкладки разделов -->
+      <div class="skill-section-tabs" id="skill-section-tabs">
+        {% for val, label in skill_sections %}
+        <button class="skill-section-tab {% if forloop.first %}active{% endif %}"
+                data-section="{{ val }}"
+                onclick="switchSkillSection('{{ val }}')">
+          {{ label }}
+        </button>
+        {% endfor %}
       </div>
 
-      <div class="skill-tree-wrap" id="skill-tree-wrap">
-        <svg id="skill-svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;"></svg>
-        <div class="skill-tree-grid">
-          {% regroup skill_nodes by order as skill_rows %}
-          {% for row in skill_rows %}
-            {% for node in row.list %}
-            {% with invested=invested_map|get_item:node.pk|default:0 %}
-            <div class="skill-node-wrap">
-              <div class="skill-circle {% if invested > 0 and invested >= node.max_points %}skill-complete{% elif invested > 0 %}skill-active{% endif %}"
-                   id="skill-node-{{ node.pk }}"
-                   data-node-id="{{ node.pk }}"
-                   data-max-points="{{ node.max_points }}"
-                   data-invested="{{ invested }}"
-                   onclick="clickSkill(event, {{ node.pk }}, {{ node.max_points }}, 'add')"
-                   oncontextmenu="clickSkill(event, {{ node.pk }}, {{ node.max_points }}, 'remove')"
-                   title="{{ node.name }}{% if node.description %}: {{ node.description }}{% endif %}">
-                <div class="skill-circle-dots" id="skill-dots-{{ node.pk }}">
-                  {% for i in "123" %}{% if forloop.counter <= node.max_points %}
-                  <div class="skill-cdot {% if invested >= forloop.counter %}filled{% endif %}"
-                       id="skill-dot-{{ node.pk }}-{{ forloop.counter }}"></div>
-                  {% endif %}{% endfor %}
+      <!-- Панели разделов -->
+      {% for val, label in skill_sections %}
+      <div class="skill-section-panel {% if not forloop.first %}hidden{% endif %}"
+           id="skill-panel-{{ val }}">
+        <div class="skill-tree-wrap" id="skill-tree-wrap-{{ val }}">
+          <svg id="skill-svg-{{ val }}"
+               style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;"></svg>
+          <div class="skill-tree-grid">
+            {% for node in skill_nodes %}
+              {% if node.section == val %}
+              {% with invested=invested_map|get_item:node.pk|default:0 %}
+              <div class="skill-node-wrap" style="grid-column:{{ node.branch }};grid-row:{{ node.order }};">
+                <div class="skill-circle {% if invested > 0 and invested >= node.max_points %}skill-complete{% elif invested > 0 %}skill-active{% endif %}"
+                     id="skill-node-{{ node.pk }}"
+                     data-node-id="{{ node.pk }}"
+                     data-section="{{ node.section }}"
+                     data-branch="{{ node.branch }}"
+                     data-order="{{ node.order }}"
+                     data-max-points="{{ node.max_points }}"
+                     data-invested="{{ invested }}"
+                     onclick="clickSkill(event, {{ node.pk }}, {{ node.max_points }}, 'add')"
+                     oncontextmenu="clickSkill(event, {{ node.pk }}, {{ node.max_points }}, 'remove')"
+                     title="{{ node.name }}{% if node.description %}: {{ node.description }}{% endif %}">
+                  <div class="skill-circle-dots" id="skill-dots-{{ node.pk }}">
+                    {% for i in "123" %}{% if forloop.counter <= node.max_points %}
+                    <div class="skill-cdot {% if invested >= forloop.counter %}filled{% endif %}"
+                         id="skill-dot-{{ node.pk }}-{{ forloop.counter }}"></div>
+                    {% endif %}{% endfor %}
+                  </div>
                 </div>
+                <div class="skill-circle-label">{{ node.name|truncatechars:14 }}</div>
               </div>
-              <div class="skill-circle-label">{{ node.name|truncatechars:12 }}</div>
-            </div>
-            {% endwith %}
+              {% endwith %}
+              {% endif %}
             {% endfor %}
-          {% endfor %}
+          </div>
         </div>
       </div>
+      {% endfor %}
 
       <script id="skill-edges-data" type="application/json">
-        [{% for edge in skill_edges %}{"from":{{ edge.from_node.pk }},"to":{{ edge.to_node.pk }}}{% if not forloop.last %},{% endif %}{% endfor %}]
+        [{% for edge in skill_edges %}{"from":{{ edge.from_node.pk }},"to":{{ edge.to_node.pk }},"section":"{{ edge.from_node.section }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
       </script>
 
     </div>
@@ -236,8 +252,6 @@
 </div>
 </div><!-- /row -->
 </div><!-- /gkc-container -->
-
-
 
 <!-- Overlay навыков для мобильных -->
 <div class="skills-overlay d-lg-none" id="skills-overlay" onclick="closeSkillsOverlay(event)"></div>
@@ -345,9 +359,58 @@
             <span style="font-size:0.72rem;color:var(--skill-color);font-weight:600;"
                   id="comp-avail-pts-skill">0 очков</span>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 4px;position:relative;" id="comp-skill-grid">
-            <svg id="comp-skill-svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;"></svg>
+
+          <!-- Вкладки разделов -->
+          <div class="skill-section-tabs" id="comp-skill-section-tabs">
+            {% for val, label in skill_sections %}
+            <button class="skill-section-tab {% if forloop.first %}active{% endif %}"
+                    data-section="{{ val }}"
+                    onclick="switchCompSkillSection('{{ val }}')">
+              {{ label }}
+            </button>
+            {% endfor %}
           </div>
+
+          <!-- Панели разделов -->
+          {% for val, label in skill_sections %}
+          <div class="skill-section-panel {% if not forloop.first %}hidden{% endif %}"
+               id="comp-skill-panel-{{ val }}">
+            <div class="skill-tree-wrap" id="comp-skill-tree-wrap-{{ val }}">
+              <svg id="comp-skill-svg-{{ val }}"
+                   style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;"></svg>
+              <div class="skill-tree-grid">
+                {% for node in skill_nodes %}
+                  {% if node.section == val %}
+                  {% with invested=invested_map|get_item:node.pk|default:0 %}
+                  <div class="skill-node-wrap" style="grid-column:{{ node.branch }};grid-row:{{ node.order }};">
+                    <div class="skill-circle"
+                         id="comp-node-{{ node.pk }}"
+                         data-node-id="{{ node.pk }}"
+                         data-section="{{ node.section }}"
+                         data-branch="{{ node.branch }}"
+                         data-order="{{ node.order }}"
+                         data-max-points="{{ node.max_points }}"
+                         data-invested="0"
+                         onclick="compClickSkill(event, {{ node.pk }}, {{ node.max_points }}, 'add')"
+                         oncontextmenu="compClickSkill(event, {{ node.pk }}, {{ node.max_points }}, 'remove')"
+                         title="{{ node.name }}{% if node.description %}: {{ node.description }}{% endif %}">
+                      <div class="skill-circle-dots" id="comp-dots-{{ node.pk }}">
+                        {% for i in "123" %}{% if forloop.counter <= node.max_points %}
+                        <div class="skill-cdot"
+                             id="comp-dot-{{ node.pk }}-{{ forloop.counter }}"></div>
+                        {% endif %}{% endfor %}
+                      </div>
+                    </div>
+                    <div class="skill-circle-label">{{ node.name|truncatechars:14 }}</div>
+                  </div>
+                  {% endwith %}
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+
         </div>
       </div>
 
@@ -453,7 +516,7 @@ const DOLL_ID = document.getElementById('doll-id').value;
 const DOLL_UUID = document.getElementById('doll-uuid').value;
 let activeSlotType = null;
 
-// Хранилище текущего состояния навыков в JS — не зависим от DOM-текста
+// Хранилище текущего состояния навыков в JS
 const skillState = {};
 {% regroup skill_nodes by order as skill_rows_js %}
 {% for row in skill_rows_js %}{% for node in row.list %}
@@ -482,21 +545,19 @@ function closeSkillsOverlay(e) {
   btn.classList.remove('active');
 }
 
-// ─── Определяем мобильный режим ───
 function isMobile() { return window.innerWidth < 992; }
 
-// ─── Навыки: клик с учётом мобильного (цикличный тап) ───
+// ─── Навыки: клик ───
 async function clickSkill(event, nodeId, maxPoints, action) {
   event.preventDefault();
   const current = skillState[nodeId] ? skillState[nodeId].invested : 0;
 
-  // На мобильном — Вариант Б: заполнен → сброс до 0, иначе добавляем по одному
   let actualAction = action;
   if (isMobile()) {
     if (current <= 0) {
       actualAction = 'add';
     } else if (current >= maxPoints) {
-      actualAction = 'reset';  // сбрасываем до 0
+      actualAction = 'reset';
     } else {
       actualAction = 'add';
     }
@@ -505,7 +566,6 @@ async function clickSkill(event, nodeId, maxPoints, action) {
     if (action === 'remove' && current <= 0) return;
   }
 
-  // Для сброса до 0 — отправляем remove несколько раз через рекурсию
   if (actualAction === 'reset') {
     let cur = current;
     while (cur > 0) {
@@ -550,7 +610,6 @@ function updateSkillNode(nodeId, invested, maxPoints) {
   const el = document.getElementById('skill-node-' + nodeId);
   if (!el) return;
   el.dataset.invested = invested;
-  // Цвет: пустой=серый, частично=зелёный, полный=фиолетовый
   el.className = 'skill-circle' +
     (invested > 0 && invested >= maxPoints ? ' skill-complete' :
      invested > 0 ? ' skill-active' : '');
@@ -560,12 +619,27 @@ function updateSkillNode(nodeId, invested, maxPoints) {
   }
 }
 
-// Рисуем SVG линии связей между узлами
-function drawSkillEdges() {
-  const wrap = document.getElementById('skill-tree-wrap');
-  const svg  = document.getElementById('skill-svg');
+// ─── Дерево навыков: вкладки и SVG ───
+let activeSkillSection = null;
+
+function switchSkillSection(section) {
+  document.querySelectorAll('#skill-section-tabs .skill-section-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.section === section);
+  });
+  document.querySelectorAll('#skills-col .skill-section-panel').forEach(p => {
+    p.classList.toggle('hidden', p.id !== 'skill-panel-' + section);
+  });
+  activeSkillSection = section;
+  setTimeout(() => drawSkillEdges(section), 30);
+}
+
+function drawSkillEdges(section) {
+  if (!section) return;
+  const wrap = document.getElementById('skill-tree-wrap-' + section);
+  const svg  = document.getElementById('skill-svg-' + section);
   if (!wrap || !svg) return;
-  const edges = JSON.parse(document.getElementById('skill-edges-data').textContent);
+  const allEdges = JSON.parse(document.getElementById('skill-edges-data').textContent);
+  const edges = allEdges.filter(e => e.section === section);
   const wrapRect = wrap.getBoundingClientRect();
   svg.innerHTML = '';
   edges.forEach(edge => {
@@ -578,16 +652,19 @@ function drawSkillEdges() {
     const y1 = fr.top  + fr.height/2 - wrapRect.top;
     const x2 = tr.left + tr.width/2  - wrapRect.left;
     const y2 = tr.top  + tr.height/2 - wrapRect.top;
-    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     line.setAttribute('x1', x1); line.setAttribute('y1', y1);
     line.setAttribute('x2', x2); line.setAttribute('y2', y2);
     line.setAttribute('stroke', 'var(--border-bright)');
     line.setAttribute('stroke-width', '1.5');
-    line.setAttribute('stroke-dasharray', 'none');
     svg.appendChild(line);
   });
 }
-window.addEventListener('resize', drawSkillEdges);
+
+window.addEventListener('resize', () => {
+  if (activeSkillSection) drawSkillEdges(activeSkillSection);
+  if (activeCompSkillSection) drawCompSkillEdges(activeCompSkillSection);
+});
 
 // ─── Цвета редкости ───
 const RARITY_COLORS = {
@@ -605,7 +682,6 @@ const RARITY_NAMES = {
 };
 
 // ─── Слоты предметов ───
-// Состояние слотов — обновляется при надевании/снятии
 const slotState = {};
 {% for st, label in slot_types %}
 {% with slot=doll_slots|get_item:st %}
@@ -615,7 +691,6 @@ slotState['{{ st }}'] = { hasItem: {% if slot.item %}true{% else %}false{% endif
 
 async function openSlotModal(slotType, label, hasItem) {
   activeSlotType = slotType;
-  // Читаем актуальное состояние из slotState, а не из параметра шаблона
   const actualHasItem = slotState[slotType] ? slotState[slotType].hasItem : hasItem;
   document.getElementById('slot-modal').style.display = 'flex';
 
@@ -658,18 +733,15 @@ function renderEditView(res) {
   const list = document.getElementById('modal-stats-list');
   list.innerHTML = '';
 
-  // Текущие статы
   res.slot_stats.forEach(s => {
     list.appendChild(buildStatRow(s.stat_id, s.stat_name, s.is_percent, s.custom_value, s.base_value, s.diff_pct));
   });
 
-  // Для духа-хранителя — кнопка добавления стата
   if (activeSlotType === GUARDIAN_SLOT) {
     const addRow = document.createElement('div');
     addRow.id = 'guardian-add-row';
     addRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);';
 
-    // Список уже добавленных stat_id
     const existingIds = new Set(res.slot_stats.map(s => s.stat_id));
     const available = ALL_STATS.filter(s => !existingIds.has(s.id));
 
@@ -726,12 +798,10 @@ function addGuardianStat() {
   const statName = sel.options[sel.selectedIndex].text;
   const isPct = sel.options[sel.selectedIndex].dataset.percent === 'True';
 
-  // Добавляем строку в список
   const list = document.getElementById('modal-stats-list');
   const addRow = document.getElementById('guardian-add-row');
   list.insertBefore(buildStatRow(statId, statName, isPct, value, 0, null), addRow);
 
-  // Убираем добавленный стат из селекта
   sel.options[sel.selectedIndex].remove();
   valInput.value = '';
   if (sel.options.length <= 1) {
@@ -757,7 +827,6 @@ function updateDiffLabel(input) {
 }
 
 function updateSlotDOM(slotType, itemName, rarity, imageUrl) {
-  // Ищем только среди слотов основной куклы (не куклы сравнения)
   const slots = document.querySelectorAll('.equip-layout .item-slot');
   let slotEl = null;
   slots.forEach(el => {
@@ -769,7 +838,6 @@ function updateSlotDOM(slotType, itemName, rarity, imageUrl) {
   });
   if (!slotEl) return;
 
-  // Обновляем рамку по редкости
   slotEl.style.borderColor = RARITY_COLORS[rarity] || 'var(--border)';
   if (rarity === 'legendary') {
     slotEl.style.background = 'rgba(245,158,11,0.08)';
@@ -777,7 +845,6 @@ function updateSlotDOM(slotType, itemName, rarity, imageUrl) {
     slotEl.style.background = '';
   }
 
-  // Обновляем содержимое
   const nameEl = slotEl.querySelector('.item-slot-name');
   const imgEl = slotEl.querySelector('img');
 
@@ -889,7 +956,6 @@ const SLOT_LABELS = {
   accessory:'Аксессуар', guardian:'Дух'
 };
 
-
 function buildItemChip(item, onclickFn) {
   const color = RARITY_COLORS[item.rarity] || 'var(--border)';
   const inner = item.image_url
@@ -916,15 +982,9 @@ function buildAccordion() {
   const acc = document.getElementById('sets-accordion');
   if (!acc) return;
   acc.innerHTML = '';
-
-  // Сеты по редкостям
   SETS_BY_RARITY.forEach(group => {
-    acc.appendChild(buildAccordionSection(
-      group.label, group.rarity, group.sets, false
-    ));
+    acc.appendChild(buildAccordionSection(group.label, group.rarity, group.sets, false));
   });
-
-  // Без сета
   if (NO_SET_ITEMS.length > 0) {
     acc.appendChild(buildNoSetSection());
   }
@@ -1029,7 +1089,8 @@ async function equipSingleItem(itemId, slotType) {
 // Строим аккордеон при загрузке
 window.addEventListener('load', () => {
   buildAccordion();
-  drawSkillEdges();
+  const firstTab = document.querySelector('#skill-section-tabs .skill-section-tab');
+  if (firstTab) switchSkillSection(firstTab.dataset.section);
 });
 
 function closeModal(e) {
@@ -1067,7 +1128,6 @@ async function resetSkills() {
     skillPts.textContent = pts + ' очков';
     skillPts.classList.remove('over-budget');
     skillPts.title = '';
-    // Сбрасываем все узлы визуально И в skillState
     document.querySelectorAll('.skill-circle').forEach(el => {
       const nodeId = parseInt(el.dataset.nodeId);
       const maxPts = parseInt(el.dataset.maxPoints);
@@ -1084,7 +1144,6 @@ async function resetSkills() {
 }
 
 function formatStatVal(val) {
-  // Показываем до 2 знаков если дробное, иначе целое
   return Number.isInteger(val) || Math.round(val) === val ? Math.round(val) : parseFloat(val.toFixed(2));
 }
 
@@ -1121,12 +1180,11 @@ async function copyShareLink() {
 }
 
 // ══════════════════════════════════════════════════════
-//  КУКЛА СРАВНЕНИЯ — через те же API что и левая кукла
+//  КУКЛА СРАВНЕНИЯ
 // ══════════════════════════════════════════════════════
 
 let COMP_DOLL_ID = null;
 let compActiveSlot = null;
-// slotState для куклы сравнения
 const compSlotState = {};
 const compSkillState = {};
 
@@ -1137,7 +1195,6 @@ async function toggleComparison() {
   const isOpen = doll.style.display !== 'none';
 
   if (!isOpen) {
-    // Открываем — загружаем куклу сравнения
     const res = await gkcPost("{% url 'calculator:api_get_comparison_doll' %}", {});
     if (res.ok) {
       COMP_DOLL_ID = res.doll_id;
@@ -1146,7 +1203,6 @@ async function toggleComparison() {
       document.getElementById('comp-avail-pts').textContent = '(' + res.available_points + ' очков)';
       document.getElementById('comp-avail-pts-skill').textContent = res.available_points + ' очков';
 
-      // Слоты
       for (const [st, data] of Object.entries(res.slots)) {
         compSlotState[st] = { hasItem: !!data.item_id };
         if (data.item_id) {
@@ -1154,19 +1210,30 @@ async function toggleComparison() {
         }
       }
 
-      // Навыки
       for (const [nodeId, pts] of Object.entries(res.invested_map)) {
         compSkillState[parseInt(nodeId)] = pts;
+        // Восстанавливаем визуальное состояние узлов
+        const el = document.getElementById('comp-node-' + nodeId);
+        if (el) {
+          const maxPts = parseInt(el.dataset.maxPoints);
+          el.dataset.invested = pts;
+          el.className = 'skill-circle' +
+            (pts >= maxPts && pts > 0 ? ' skill-complete' : pts > 0 ? ' skill-active' : '');
+          for (let i = 1; i <= maxPts; i++) {
+            const dot = document.getElementById('comp-dot-' + nodeId + '-' + i);
+            if (dot) dot.classList.toggle('filled', i <= pts);
+          }
+        }
       }
 
-      // Сначала показываем блок, потом рендерим
       doll.style.display = 'block';
       btn.style.color = 'var(--accent)';
       btn.style.borderColor = 'var(--accent)';
 
       requestAnimationFrame(() => {
         compRenderStats(res.stats);
-        compBuildSkillGrid();
+        const firstCompTab = document.querySelector('#comp-skill-section-tabs .skill-section-tab');
+        if (firstCompTab) switchCompSkillSection(firstCompTab.dataset.section);
         compBuildAccordion();
       });
     }
@@ -1177,7 +1244,49 @@ async function toggleComparison() {
   }
 }
 
-// ─── Отображение статов с цветами сравнения ───
+// ─── Навыки куклы сравнения: вкладки и SVG ───
+let activeCompSkillSection = null;
+
+function switchCompSkillSection(section) {
+  document.querySelectorAll('#comp-skill-section-tabs .skill-section-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.section === section);
+  });
+  document.querySelectorAll('[id^="comp-skill-panel-"]').forEach(p => {
+    p.classList.toggle('hidden', p.id !== 'comp-skill-panel-' + section);
+  });
+  activeCompSkillSection = section;
+  setTimeout(() => drawCompSkillEdges(section), 30);
+}
+
+function drawCompSkillEdges(section) {
+  if (!section) return;
+  const wrap = document.getElementById('comp-skill-tree-wrap-' + section);
+  const svg  = document.getElementById('comp-skill-svg-' + section);
+  if (!wrap || !svg) return;
+  const allEdges = JSON.parse(document.getElementById('skill-edges-data').textContent);
+  const edges = allEdges.filter(e => e.section === section);
+  const wrapRect = wrap.getBoundingClientRect();
+  svg.innerHTML = '';
+  edges.forEach(edge => {
+    const from = document.getElementById('comp-node-' + edge.from);
+    const to   = document.getElementById('comp-node-' + edge.to);
+    if (!from || !to) return;
+    const fr = from.getBoundingClientRect();
+    const tr = to.getBoundingClientRect();
+    const x1 = fr.left + fr.width/2  - wrapRect.left;
+    const y1 = fr.top  + fr.height/2 - wrapRect.top;
+    const x2 = tr.left + tr.width/2  - wrapRect.left;
+    const y2 = tr.top  + tr.height/2 - wrapRect.top;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('stroke', 'var(--border-bright)');
+    line.setAttribute('stroke-width', '1.5');
+    svg.appendChild(line);
+  });
+}
+
+// ─── Статы куклы сравнения ───
 function compUpdateEffects(effects) {
   const block = document.getElementById('comp-effects-block');
   const content = document.getElementById('comp-effects-content');
@@ -1205,7 +1314,6 @@ function compRenderStats(compStats) {
   const resistEl = document.getElementById('comp-resist-stats');
   if (!powerEl || !resistEl) return;
 
-  // Читаем статы левой куклы из DOM
   const leftStats = {};
   document.querySelectorAll('[id^="stat-"]').forEach(el => {
     const slug = el.id.replace('stat-', '');
@@ -1371,64 +1479,6 @@ function compClearSlotDOM(slotType) {
   if (labelEl) { labelEl.style.display = ''; }
 }
 
-// ─── Навыки куклы сравнения ───
-function compBuildSkillGrid() {
-  const grid = document.getElementById('comp-skill-grid');
-  if (!grid || grid.querySelectorAll('.skill-node-wrap').length > 0) return;
-
-  {% regroup skill_nodes by order as comp_skill_rows %}
-  {% for row in comp_skill_rows %}{% for node in row.list %}
-  (function() {
-    const wrap = document.createElement('div');
-    wrap.className = 'skill-node-wrap';
-    const invested = compSkillState[{{ node.pk }}] || 0;
-    const maxPts = {{ node.max_points }};
-    wrap.innerHTML = `<div class="skill-circle ${invested >= maxPts && invested > 0 ? 'skill-complete' : invested > 0 ? 'skill-active' : ''}"
-         id="comp-node-{{ node.pk }}"
-         data-invested="${invested}" data-max="${maxPts}"
-         onclick="compClickSkill(event, {{ node.pk }}, ${maxPts}, 'add')"
-         oncontextmenu="compClickSkill(event, {{ node.pk }}, ${maxPts}, 'remove')"
-         title="{{ node.name }}">
-      <div class="skill-circle-dots" id="comp-dots-{{ node.pk }}">
-        ${Array.from({length: maxPts}, (_, i) =>
-          `<div class="skill-cdot ${i < invested ? 'filled' : ''}" id="comp-dot-{{ node.pk }}-${i+1}"></div>`
-        ).join('')}
-      </div>
-    </div>
-    <div class="skill-circle-label">{{ node.name|truncatechars:10 }}</div>`;
-    grid.appendChild(wrap);
-  })();
-  {% endfor %}{% endfor %}
-  // Рисуем линии связей после построения грида
-  setTimeout(drawCompSkillEdges, 50);
-}
-
-function drawCompSkillEdges() {
-  const wrap = document.getElementById('comp-skill-grid');
-  const svg = document.getElementById('comp-skill-svg');
-  if (!wrap || !svg) return;
-  const edges = JSON.parse(document.getElementById('skill-edges-data').textContent);
-  const wrapRect = wrap.getBoundingClientRect();
-  svg.innerHTML = '';
-  edges.forEach(edge => {
-    const from = document.getElementById('comp-node-' + edge.from);
-    const to   = document.getElementById('comp-node-' + edge.to);
-    if (!from || !to) return;
-    const fr = from.getBoundingClientRect();
-    const tr = to.getBoundingClientRect();
-    const x1 = fr.left + fr.width/2  - wrapRect.left;
-    const y1 = fr.top  + fr.height/2 - wrapRect.top;
-    const x2 = tr.left + tr.width/2  - wrapRect.left;
-    const y2 = tr.top  + tr.height/2 - wrapRect.top;
-    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
-    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-    line.setAttribute('stroke', 'var(--border-bright)');
-    line.setAttribute('stroke-width', '1.5');
-    svg.appendChild(line);
-  });
-}
-
 async function compClickSkill(event, nodeId, maxPoints, action) {
   event.preventDefault();
   const current = compSkillState[nodeId] || 0;
@@ -1465,7 +1515,7 @@ async function compResetSkills() {
     Object.keys(compSkillState).forEach(k => { compSkillState[k] = 0; });
     document.querySelectorAll('[id^="comp-node-"]').forEach(el => {
       const nodeId = el.id.replace('comp-node-', '');
-      const maxPts = parseInt(el.dataset.max);
+      const maxPts = parseInt(el.dataset.maxPoints);
       el.dataset.invested = 0;
       el.className = 'skill-circle';
       for (let i = 1; i <= maxPts; i++) {
@@ -1526,7 +1576,6 @@ function compBuildAccordion() {
     acc.appendChild(wrap);
   });
 
-  // Без сета
   if (NO_SET_ITEMS.length > 0) {
     const wrap2 = document.createElement('div');
     wrap2.style.cssText = 'border:1px solid var(--border);border-radius:5px;margin-bottom:3px;overflow:hidden;';

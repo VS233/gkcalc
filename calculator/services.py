@@ -282,9 +282,13 @@ def build_index_context(request, doll, user_dolls, slot, settings):
     available_points = get_available_points(doll)
     active_effects = get_active_effects(doll)
 
-    skill_nodes = SkillNode.objects.prefetch_related('bonuses__stat', 'edges_to').order_by('order', 'branch')
+    from skills.models import SkillSection
+    skill_nodes = SkillNode.objects.prefetch_related(
+        'bonuses__stat', 'edges_to', 'edges_from'
+    ).order_by('section', 'branch', 'order')
     skill_edges = SkillEdge.objects.select_related('from_node', 'to_node').all()
     invested_map = {ds.node_id: ds.points_invested for ds in doll.skill_points.all()}
+    skill_sections = [(s.value, s.label) for s in SkillSection]
 
     items_by_slot = {}
     for slot_type, _ in SlotType.choices:
@@ -325,10 +329,20 @@ def build_index_context(request, doll, user_dolls, slot, settings):
 
     skill_nodes_data = []
     for node in skill_nodes:
-        bonuses = [{'stat_slug': b.stat.slug, 'v1': b.value_level_1, 'v2': b.value_level_2, 'v3': b.value_level_3}
-                   for b in node.bonuses.all()]
-        skill_nodes_data.append({'id': node.pk, 'branch': node.branch, 'order': node.order,
-                                  'max_points': node.max_points, 'bonuses': bonuses})
+        bonuses = [
+            {'stat_slug': b.stat.slug, 'v1': b.value_level_1,
+             'v2': b.value_level_2, 'v3': b.value_level_3}
+            for b in node.bonuses.all()
+        ]
+        skill_nodes_data.append({
+            'id': node.pk,
+            'section': node.section,
+            'branch': node.branch,
+            'order': node.order,
+            'max_points': node.max_points,
+            'name': node.name,
+            'bonuses': bonuses,
+        })
 
     return {
         'doll': doll,
@@ -346,6 +360,7 @@ def build_index_context(request, doll, user_dolls, slot, settings):
         'sets_by_rarity': json.dumps(sets_by_rarity),
         'no_set_items': json.dumps(no_set_items),
         'skill_nodes_data': json.dumps(skill_nodes_data),
+        'skill_sections': skill_sections,
         'base_character_stats': json.dumps(settings.BASE_CHARACTER_STATS),
         'user_dolls': user_dolls,
         'active_slot': slot,

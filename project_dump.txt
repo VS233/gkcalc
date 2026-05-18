@@ -1,0 +1,4389 @@
+﻿=== C:\Dev\gkcalc\gkcalc\accounts\admin.py ===
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import User
+
+
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
+    list_display = ['email', 'username', 'is_staff', 'date_joined']
+    ordering = ['-date_joined']
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Личные данные', {'fields': ('username',)}),
+        ('Права', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+    )
+    add_fieldsets = (
+        (None, {'fields': ('email', 'password1', 'password2')}),
+    )
+    search_fields = ['email', 'username']
+    filter_horizontal = ['groups', 'user_permissions']
+=== C:\Dev\gkcalc\gkcalc\accounts\apps.py ===
+from django.apps import AppConfig
+
+
+class AccountsConfig(AppConfig):
+    name = 'accounts'
+=== C:\Dev\gkcalc\gkcalc\accounts\models.py ===
+import uuid
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.db import models
+from django.utils import timezone
+
+
+class UserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('Email обязателен')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(email, password, **extra_fields)
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    """Пользователь — авторизация по e-mail."""
+    email = models.EmailField(unique=True, verbose_name='E-mail')
+    username = models.CharField(max_length=64, blank=True, verbose_name='Никнейм')
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(default=timezone.now)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
+    def __str__(self):
+        return self.email
+=== C:\Dev\gkcalc\gkcalc\accounts\tests.py ===
+from django.test import TestCase
+
+# Create your tests here.
+=== C:\Dev\gkcalc\gkcalc\accounts\urls.py ===
+from django.urls import path
+from django.contrib.auth import views as auth_views
+from . import views
+
+app_name = 'accounts'
+
+urlpatterns = [
+    path('register/', views.register, name='register'),
+    path('login/', auth_views.LoginView.as_view(
+        template_name='accounts/login.html',
+        authentication_form=None,
+    ), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+]
+=== C:\Dev\gkcalc\gkcalc\accounts\views.py ===
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
+from django import forms
+from .models import User
+
+
+class RegisterForm(forms.ModelForm):
+    password1 = forms.CharField(label='Пароль', widget=forms.PasswordInput)
+    password2 = forms.CharField(label='Повторите пароль', widget=forms.PasswordInput)
+
+    class Meta:
+        model = User
+        fields = ['email', 'username']
+
+    def clean_password2(self):
+        p1 = self.cleaned_data.get('password1')
+        p2 = self.cleaned_data.get('password2')
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError('Пароли не совпадают')
+        return p2
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password1'])
+        if commit:
+            user.save()
+        return user
+
+
+def register(request):
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('calculator:index')
+    else:
+        form = RegisterForm()
+    return render(request, 'accounts/register.html', {'form': form})
+=== C:\Dev\gkcalc\gkcalc\accounts\__init__.py ===
+=== C:\Dev\gkcalc\gkcalc\calculator\templatetags\calc_extras.py ===
+from django import template
+register = template.Library()
+
+@register.filter
+def get_item(dictionary, key):
+    """{{ my_dict|get_item:key }} — получить значение по ключу в шаблоне."""
+    if dictionary is None:
+        return None
+    return dictionary.get(key)
+=== C:\Dev\gkcalc\gkcalc\calculator\templatetags\__init__.py ===
+=== C:\Dev\gkcalc\gkcalc\calculator\admin.py ===
+from django.contrib import admin
+from .models import Doll, DollSlot, DollSkill
+
+
+class DollSlotInline(admin.TabularInline):
+    model = DollSlot
+    extra = 0
+    fields = ['slot_type', 'item', 'grade', 'quality']
+
+
+@admin.register(Doll)
+class DollAdmin(admin.ModelAdmin):
+    list_display = ['name', 'owner', 'character_level', 'is_public', 'updated_at']
+    list_filter = ['is_public']
+    readonly_fields = ['uuid']
+    inlines = [DollSlotInline]
+=== C:\Dev\gkcalc\gkcalc\calculator\apps.py ===
+from django.apps import AppConfig
+
+
+class CalculatorConfig(AppConfig):
+    name = 'calculator'
+=== C:\Dev\gkcalc\gkcalc\calculator\models.py ===
+import uuid
+from django.db import models
+from django.conf import settings
+from catalog.models import SlotType, Item, Stat
+
+
+class Doll(models.Model):
+    """Кукла персонажа — основная сущность калькулятора."""
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True, blank=True,
+        related_name='dolls',
+        verbose_name='Владелец',
+    )
+    name = models.CharField(max_length=64, default='Моя кукла', verbose_name='Название')
+    character_level = models.PositiveSmallIntegerField(default=1, verbose_name='Уровень персонажа')
+    stats_snapshot = models.JSONField(default=dict, blank=True)
+    saved_state = models.JSONField(default=dict, blank=True)  # сохранённое состояние по кнопке "Сохранить"
+    slot_order = models.PositiveSmallIntegerField(default=0, verbose_name='Номер слота')
+    is_public = models.BooleanField(default=True, verbose_name='Публичная ссылка')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Кукла'
+        verbose_name_plural = 'Куклы'
+        ordering = ['slot_order']
+
+    def __str__(self):
+        return f'{self.name} (ур. {self.character_level})'
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('calculator:doll_public', kwargs={'uuid': self.uuid})
+
+
+class DollSlot(models.Model):
+    """Слот куклы — предмет с кастомными статами."""
+    doll = models.ForeignKey(Doll, on_delete=models.CASCADE, related_name='slots')
+    slot_type = models.CharField(max_length=20, choices=SlotType.choices, verbose_name='Тип слота')
+    item = models.ForeignKey(
+        Item, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name='Предмет',
+    )
+
+    class Meta:
+        verbose_name = 'Слот куклы'
+        verbose_name_plural = 'Слоты куклы'
+        unique_together = [('doll', 'slot_type')]
+
+    def __str__(self):
+        return f'{self.doll.name} / {self.get_slot_type_display()}'
+
+    def get_effective_stats(self):
+        """
+        Возвращает dict {stat_slug: значение}.
+        Если есть кастомные статы — берём их,
+        иначе базовые из ItemStat.
+        """
+        if not self.item:
+            return {}
+        custom = {cs.stat.slug: cs.value for cs in self.custom_stats.select_related('stat').all()}
+        if custom:
+            return custom
+        # Базовые значения
+        return {
+            s.stat.slug: s.base_value
+            for s in self.item.stats.select_related('stat').all()
+        }
+
+    def get_stats_with_diff(self):
+        """
+        Возвращает список dict для UI.
+        Для обычных предметов — базовые статы с diff к кастомным.
+        Для духа (нет ItemStat) — только кастомные статы.
+        """
+        if not self.item:
+            return []
+        base_map = {
+            s.stat: s.base_value
+            for s in self.item.stats.select_related('stat').all()
+        }
+        custom_map = {
+            cs.stat: cs.value
+            for cs in self.custom_stats.select_related('stat').all()
+        }
+
+        result = []
+        # Все статы которые есть в базе или в кастомных
+        all_stats = set(base_map.keys()) | set(custom_map.keys())
+        for stat in sorted(all_stats, key=lambda s: s.order):
+            base_val = base_map.get(stat)
+            custom_val = custom_map.get(stat)
+            display_val = custom_val if custom_val is not None else base_val
+            if base_val is not None and base_val != 0 and custom_val is not None:
+                diff_pct = round((custom_val - base_val) / base_val * 100, 1)
+            else:
+                diff_pct = None
+            result.append({
+                'stat': stat,
+                'base_value': base_val,
+                'custom_value': display_val,
+                'diff_pct': diff_pct,
+            })
+        return result
+
+
+class DollSlotStat(models.Model):
+    """Кастомный стат предмета в слоте куклы."""
+    doll_slot = models.ForeignKey(DollSlot, on_delete=models.CASCADE, related_name='custom_stats')
+    stat = models.ForeignKey(Stat, on_delete=models.CASCADE)
+    value = models.FloatField(verbose_name='Значение')
+
+    class Meta:
+        verbose_name = 'Кастомный стат слота'
+        verbose_name_plural = 'Кастомные статы слотов'
+        unique_together = [('doll_slot', 'stat')]
+
+    def __str__(self):
+        return f'{self.doll_slot} / {self.stat.name_ru} = {self.value}'
+
+
+class DollSkill(models.Model):
+    """Вложенные очки в узел навыка для конкретной куклы."""
+    doll = models.ForeignKey(Doll, on_delete=models.CASCADE, related_name='skill_points')
+    node = models.ForeignKey('skills.SkillNode', on_delete=models.CASCADE)
+    points_invested = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Навык куклы'
+        verbose_name_plural = 'Навыки куклы'
+        unique_together = [('doll', 'node')]
+
+    def __str__(self):
+        return f'{self.doll.name} / {self.node}'
+
+
+class DollSnapshot(models.Model):
+    """Снимок куклы для публичной ссылки — не меняется после создания."""
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
+    doll = models.ForeignKey(Doll, on_delete=models.CASCADE, related_name='snapshots')
+    state = models.JSONField()  # полное состояние на момент создания
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Снимок куклы'
+        verbose_name_plural = 'Снимки кукол'
+
+    def __str__(self):
+        return f'Снимок {self.doll.name} от {self.created_at:%d.%m.%Y %H:%M}'
+=== C:\Dev\gkcalc\gkcalc\calculator\services.py ===
+"""
+Сервисный слой — вся логика расчёта статов здесь.
+Views только вызывают эти функции — бизнес-логика не смешивается с HTTP.
+"""
+from collections import defaultdict
+from catalog.models import Stat, SlotType
+
+
+def calculate_doll_stats(doll):
+    """
+    Считает итоговые статы куклы:
+      базовые статы персонажа
+      + статы от предметов
+      + бонусы от сетов
+      + бонусы от навыков
+    """
+    from django.conf import settings as django_settings
+    from catalog.models import SetBonus
+    totals = defaultdict(float)
+
+    # 0. Базовые статы персонажа
+    for slug, value in django_settings.BASE_CHARACTER_STATS.items():
+        totals[slug] += value
+
+    # 1. Статы от предметов + считаем сколько предметов из каждого сета
+    set_counts = defaultdict(int)
+    for doll_slot in doll.slots.select_related('item__item_set').prefetch_related(
+        'item__stats__stat', 'custom_stats__stat'
+    ):
+        if not doll_slot.item:
+            continue
+        for slug, value in doll_slot.get_effective_stats().items():
+            totals[slug] += value
+        if doll_slot.item.item_set_id:
+            set_counts[doll_slot.item.item_set_id] += 1
+
+    # 2. Бонусы от сетов
+    for set_id, count in set_counts.items():
+        bonuses = SetBonus.objects.filter(
+            item_set_id=set_id,
+            pieces_required__lte=count,
+            stat__isnull=False,
+        ).select_related('stat')
+        for bonus in bonuses:
+            totals[bonus.stat.slug] += bonus.value
+
+    # 3. Бонусы от навыков
+    for doll_skill in doll.skill_points.select_related('node').prefetch_related('node__bonuses__stat'):
+        if doll_skill.points_invested > 0:
+            for bonus in doll_skill.node.bonuses.all():
+                totals[bonus.stat.slug] += bonus.get_value_for_points(doll_skill.points_invested)
+
+    return dict(totals)
+
+
+def get_stats_grouped(doll):
+    """
+    Возвращает статы куклы, сгруппированные по категории (мощь / сопротивление),
+    с названиями из справочника Stat.
+    """
+    raw = calculate_doll_stats(doll)
+    stats_qs = Stat.objects.all().order_by('order')
+
+    power = []
+    resistance = []
+    for stat in stats_qs:
+        entry = {
+            'slug': stat.slug,
+            'name': stat.name_ru,
+            'value': raw.get(stat.slug, 0),
+            'is_percent': stat.is_percent,
+        }
+        if stat.category == Stat.CATEGORY_POWER:
+            power.append(entry)
+        else:
+            resistance.append(entry)
+
+    return {'power': power, 'resistance': resistance}
+
+
+def get_available_points(doll):
+    """Сколько очков навыков доступно. Уровень 1 = 0 очков, уровень 2 = 1 очко и т.д."""
+    spent = sum(
+        ds.points_invested for ds in doll.skill_points.all()
+    )
+    total = max(0, doll.character_level - 1)
+    return max(0, total - spent)
+
+
+def get_total_points(doll):
+    """Всего очков по уровню."""
+    return max(0, doll.character_level - 1)
+
+
+def get_spent_points(doll):
+    """Потрачено очков."""
+    return sum(ds.points_invested for ds in doll.skill_points.all())
+
+
+def is_over_budget(doll):
+    """Потрачено больше очков чем доступно по уровню."""
+    return get_spent_points(doll) > get_total_points(doll)
+
+
+def can_unlock_node(doll, node):
+    """
+    Проверяет, доступен ли узел для прокачки.
+    Правило: хотя бы ОДИН родительский узел должен быть полностью заполнен.
+    Если входящих рёбер нет — узел первого ряда, всегда доступен.
+    """
+    edges = list(node.edges_to.select_related('from_node').all())
+    if not edges:
+        return True
+
+    for edge in edges:
+        parent = edge.from_node
+        invested = doll.skill_points.filter(node=parent).values_list(
+            'points_invested', flat=True
+        ).first() or 0
+        if invested >= parent.max_points:
+            return True  # нашли хотя бы одного заполненного родителя
+
+    return False
+
+
+def can_remove_point(doll, node):
+    """
+    Проверяет, можно ли убрать очко из узла.
+    Нельзя откатить узел если от него зависит уже прокачанный дочерний узел.
+    """
+    from skills.models import SkillEdge
+
+    def is_invested(child):
+        invested = doll.skill_points.filter(node=child).values_list(
+            'points_invested', flat=True
+        ).first() or 0
+        return invested > 0
+
+    def node_is_full(n):
+        invested = doll.skill_points.filter(node=n).values_list(
+            'points_invested', flat=True
+        ).first() or 0
+        return invested >= n.max_points
+
+    # Смотрим все рёбра ОТ этого узла (дочерние)
+    for edge in node.edges_from.select_related('to_node').all():
+        child = edge.to_node
+        if not is_invested(child):
+            continue  # дочерний не прокачан — ок
+
+        # Дочерний прокачан — проверяем есть ли у него другой заполненный родитель
+        # (альтернативный путь через диагональ)
+        child_edges = list(child.edges_to.select_related('from_node').all())
+        other_parents_ok = any(
+            e.from_node.pk != node.pk and node_is_full(e.from_node)
+            for e in child_edges
+        )
+        if not other_parents_ok:
+            return False  # дочерний зависит только от нас — откат запрещён
+
+    return True
+
+
+def save_stats_snapshot(doll):
+    """Сохраняет снапшот статов в doll.stats_snapshot для быстрого показа."""
+    doll.stats_snapshot = calculate_doll_stats(doll)
+    doll.save(update_fields=['stats_snapshot', 'updated_at'])
+
+
+def get_active_effects(doll):
+    """
+    Собирает активные эффекты куклы:
+    - от духа-хранителя (если надет)
+    - от бонусов сетов (если набрано нужное количество предметов)
+    Возвращает список dict {source, name, description}.
+    """
+    from catalog.models import SetBonus
+    effects = []
+
+    # Считаем предметы по сетам и собираем эффект духа
+    set_counts = defaultdict(int)
+    for doll_slot in doll.slots.select_related('item__item_set', 'item__effect').all():
+        if not doll_slot.item:
+            continue
+        # Эффект духа-хранителя
+        if doll_slot.slot_type == 'guardian' and doll_slot.item.effect:
+            eff = doll_slot.item.effect
+            effects.append({
+                'source': f'Дух: {doll_slot.item.name}',
+                'name': eff.name,
+                'description': eff.description,
+            })
+        if doll_slot.item.item_set_id:
+            set_counts[doll_slot.item.item_set_id] += 1
+
+    # Эффекты от сетов
+    for set_id, count in set_counts.items():
+        bonuses = SetBonus.objects.filter(
+            item_set_id=set_id,
+            pieces_required__lte=count,
+            effect__isnull=False,
+        ).select_related('effect', 'item_set')
+        for bonus in bonuses:
+            effects.append({
+                'source': f'Сет: {bonus.item_set.name} ({bonus.pieces_required} пред.)',
+                'name': bonus.effect.name,
+                'description': bonus.effect.description,
+            })
+
+    return effects
+
+
+def save_doll_state(doll):
+    """Сохраняет полное состояние куклы в saved_state."""
+    slots = {}
+    for ds in doll.slots.select_related('item').prefetch_related('custom_stats__stat').all():
+        slots[ds.slot_type] = {
+            'item_id': ds.item_id,
+            'stats': {cs.stat_id: cs.value for cs in ds.custom_stats.all()}
+        }
+    skills = {
+        str(sp.node_id): sp.points_invested
+        for sp in doll.skill_points.all()
+    }
+    doll.saved_state = {
+        'character_level': doll.character_level,
+        'slots': slots,
+        'skills': skills,
+    }
+    doll.save(update_fields=['saved_state'])
+
+
+def restore_doll_state(doll):
+    """Восстанавливает состояние куклы из saved_state."""
+    from catalog.models import Item
+    from .models import DollSlot, DollSlotStat, DollSkill
+    from skills.models import SkillNode
+
+    state = doll.saved_state
+    if not state:
+        return False
+
+    # Уровень
+    doll.character_level = state.get('character_level', 1)
+    doll.save(update_fields=['character_level'])
+
+    # Слоты
+    for slot_type, slot_data in state.get('slots', {}).items():
+        ds, _ = DollSlot.objects.get_or_create(doll=doll, slot_type=slot_type)
+        item_id = slot_data.get('item_id')
+        ds.item_id = item_id
+        ds.save(update_fields=['item'])
+        ds.custom_stats.all().delete()
+        for stat_id, value in slot_data.get('stats', {}).items():
+            DollSlotStat.objects.create(doll_slot=ds, stat_id=int(stat_id), value=value)
+
+    # Навыки
+    doll.skill_points.all().delete()
+    for node_id, points in state.get('skills', {}).items():
+        if points > 0:
+            try:
+                node = SkillNode.objects.get(pk=int(node_id))
+                DollSkill.objects.create(doll=doll, node=node, points_invested=points)
+            except SkillNode.DoesNotExist:
+                pass
+
+    save_stats_snapshot(doll)
+    return True
+
+
+def build_index_context(request, doll, user_dolls, slot, settings):
+    """Собирает контекст для главной страницы калькулятора."""
+    from catalog.models import Stat, ItemSet, Rarity, Item, SlotType
+    from skills.models import SkillNode, SkillEdge
+    import json
+
+    doll_slots = {
+        ds.slot_type: ds
+        for ds in doll.slots.select_related('item').prefetch_related('custom_stats__stat').all()
+    }
+    grouped_stats = get_stats_grouped(doll)
+    available_points = get_available_points(doll)
+    active_effects = get_active_effects(doll)
+
+    skill_nodes = SkillNode.objects.prefetch_related('bonuses__stat', 'edges_to').order_by('order', 'branch')
+    skill_edges = SkillEdge.objects.select_related('from_node', 'to_node').all()
+    invested_map = {ds.node_id: ds.points_invested for ds in doll.skill_points.all()}
+
+    items_by_slot = {}
+    for slot_type, _ in SlotType.choices:
+        items_by_slot[slot_type] = list(
+            Item.objects.filter(slot_type=slot_type, is_active=True).values('id', 'name', 'rarity')
+        )
+
+    all_stats = list(Stat.objects.values('id', 'name_ru', 'slug', 'category', 'is_percent').order_by('order'))
+
+    rarity_order = [r.value for r in [
+        Rarity.LEGENDARY, Rarity.LIMITED, Rarity.CRAFTED,
+        Rarity.EPIC, Rarity.RARE, Rarity.UNCOMMON, Rarity.COMMON
+    ]]
+    rarity_labels = dict(Rarity.choices)
+    sets_by_rarity = []
+    for rarity in rarity_order:
+        sets = ItemSet.objects.filter(rarity=rarity).prefetch_related('items')
+        set_list = []
+        for s in sets:
+            items_in_set = []
+            for it in s.items.filter(is_active=True):
+                items_in_set.append({
+                    'id': it.id, 'name': it.name, 'slot_type': it.slot_type,
+                    'rarity': it.rarity,
+                    'image_url': it.image.url if it.image and it.image.name else None,
+                })
+            if items_in_set:
+                set_list.append({'id': s.id, 'name': s.name, 'items': items_in_set})
+        if set_list:
+            sets_by_rarity.append({'rarity': rarity, 'label': rarity_labels.get(rarity, rarity), 'sets': set_list})
+
+    no_set_items = []
+    for it in Item.objects.filter(item_set__isnull=True, is_active=True).order_by('rarity', 'name'):
+        no_set_items.append({
+            'id': it.id, 'name': it.name, 'slot_type': it.slot_type, 'rarity': it.rarity,
+            'image_url': it.image.url if it.image and it.image.name else None,
+        })
+
+    skill_nodes_data = []
+    for node in skill_nodes:
+        bonuses = [{'stat_slug': b.stat.slug, 'v1': b.value_level_1, 'v2': b.value_level_2, 'v3': b.value_level_3}
+                   for b in node.bonuses.all()]
+        skill_nodes_data.append({'id': node.pk, 'branch': node.branch, 'order': node.order,
+                                  'max_points': node.max_points, 'bonuses': bonuses})
+
+    return {
+        'doll': doll,
+        'doll_slots': doll_slots,
+        'slot_types': SlotType.choices,
+        'grouped_stats': grouped_stats,
+        'available_points': available_points,
+        'is_over_budget': is_over_budget(doll),
+        'active_effects': active_effects,
+        'skill_nodes': skill_nodes,
+        'skill_edges': skill_edges,
+        'invested_map': invested_map,
+        'items_by_slot': json.dumps(items_by_slot),
+        'all_stats': json.dumps(all_stats),
+        'sets_by_rarity': json.dumps(sets_by_rarity),
+        'no_set_items': json.dumps(no_set_items),
+        'skill_nodes_data': json.dumps(skill_nodes_data),
+        'base_character_stats': json.dumps(settings.BASE_CHARACTER_STATS),
+        'user_dolls': user_dolls,
+        'active_slot': slot,
+        'doll_slots_count': settings.DOLL_SLOTS_PER_USER,
+    }
+
+
+def restore_doll_from_snapshot(target, state):
+    """Восстанавливает куклу из состояния снапшота."""
+    from .models import DollSlot, DollSlotStat, DollSkill
+    from skills.models import SkillNode
+
+    target.character_level = state.get('character_level', 1)
+    target.save(update_fields=['character_level'])
+
+    for slot_type, slot_data in state.get('slots', {}).items():
+        tgt_slot, _ = DollSlot.objects.get_or_create(doll=target, slot_type=slot_type)
+        tgt_slot.item_id = slot_data.get('item_id')
+        tgt_slot.save(update_fields=['item'])
+        tgt_slot.custom_stats.all().delete()
+        for stat_id, value in slot_data.get('stats', {}).items():
+            DollSlotStat.objects.create(doll_slot=tgt_slot, stat_id=int(stat_id), value=value)
+
+    target.skill_points.all().delete()
+    for node_id, points in state.get('skills', {}).items():
+        if points > 0:
+            try:
+                node = SkillNode.objects.get(pk=int(node_id))
+                DollSkill.objects.create(doll=target, node=node, points_invested=points)
+            except SkillNode.DoesNotExist:
+                pass
+
+    save_stats_snapshot(target)
+
+
+def build_doll_snapshot_state(doll):
+    """Собирает состояние куклы для снапшота."""
+    slots = {}
+    for ds in doll.slots.select_related('item').prefetch_related('custom_stats__stat').all():
+        slots[ds.slot_type] = {
+            'item_id': ds.item_id,
+            'stats': {str(cs.stat_id): cs.value for cs in ds.custom_stats.all()}
+        }
+    skills = {str(sp.node_id): sp.points_invested for sp in doll.skill_points.all()}
+    return {
+        'character_level': doll.character_level,
+        'slots': slots,
+        'skills': skills,
+        'doll_name': doll.name,
+    }
+=== C:\Dev\gkcalc\gkcalc\calculator\sitemaps.py ===
+from django.contrib.sitemaps import Sitemap
+from django.urls import reverse
+
+
+class StaticSitemap(Sitemap):
+    priority = 1.0
+    changefreq = 'weekly'
+
+    def items(self):
+        return ['calculator:index']
+
+    def location(self, item):
+        return reverse(item)
+=== C:\Dev\gkcalc\gkcalc\calculator\tests.py ===
+from django.test import TestCase
+
+# Create your tests here.
+=== C:\Dev\gkcalc\gkcalc\calculator\urls.py ===
+from django.urls import path
+from . import views
+
+app_name = 'calculator'
+
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('share/<uuid:uuid>/', views.doll_public, name='doll_public'),
+    path('api/slot/select/', views.api_select_item, name='api_select_item'),
+    path('api/slot/stats/', views.api_get_slot_stats, name='api_get_slot_stats'),
+    path('api/slot/save/', views.api_save_slot_stats, name='api_save_slot_stats'),
+    path('api/skill/update/', views.api_update_skill, name='api_update_skill'),
+    path('api/skill/reset/', views.api_reset_skills, name='api_reset_skills'),
+    path('api/doll/save/', views.api_save_doll, name='api_save_doll'),
+    path('api/doll/load/', views.api_load_doll, name='api_load_doll'),
+    path('api/doll/snapshot/', views.api_create_snapshot, name='api_create_snapshot'),
+    path('api/doll/level/', views.api_set_level, name='api_set_level'),
+    path('api/set/equip/', views.api_equip_set, name='api_equip_set'),
+    path('api/item/stats/', views.api_get_item_stats, name='api_get_item_stats'),
+    path('api/comp/doll/', views.api_get_comparison_doll, name='api_get_comparison_doll'),
+    path('api/doll/copy/', views.api_copy_doll, name='api_copy_doll'),
+]
+=== C:\Dev\gkcalc\gkcalc\calculator\views.py ===
+import json
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
+
+from catalog.models import Item, SlotType, Stat
+from skills.models import SkillNode, SkillEdge
+from .models import Doll, DollSlot, DollSlotStat, DollSkill
+from .services import (
+    get_stats_grouped, get_available_points, get_total_points,
+    get_spent_points, is_over_budget,
+    can_unlock_node, can_remove_point, save_stats_snapshot,
+    calculate_doll_stats, get_active_effects,
+    save_doll_state, restore_doll_state,
+    build_index_context, restore_doll_from_snapshot, build_doll_snapshot_state
+)
+
+
+def _get_or_create_session_doll(request):
+    doll_id = request.session.get('guest_doll_id')
+    if doll_id:
+        try:
+            return Doll.objects.get(pk=doll_id, owner=None)
+        except Doll.DoesNotExist:
+            pass
+
+    # Создаём новую гостевую куклу — заодно чистим старые (>6 дней)
+    from django.utils import timezone
+    from datetime import timedelta
+    Doll.objects.filter(
+        owner=None,
+        updated_at__lt=timezone.now() - timedelta(days=6)
+    ).delete()
+
+    doll = Doll.objects.create(owner=None)
+    for slot_type, _ in SlotType.choices:
+        DollSlot.objects.create(doll=doll, slot_type=slot_type)
+    request.session['guest_doll_id'] = doll.pk
+    return doll
+
+
+def _get_user_doll(request, slot_order=0):
+    doll, created = Doll.objects.get_or_create(
+        owner=request.user,
+        slot_order=slot_order,
+        defaults={'name': f'Кукла {slot_order + 1}'},
+    )
+    if created:
+        for slot_type, _ in SlotType.choices:
+            DollSlot.objects.create(doll=doll, slot_type=slot_type)
+    return doll
+
+def _get_or_create_comparison_doll(request):
+    """Кукла сравнения — гостевая, живёт в сессии. Старые чистим (>2 дней)."""
+    from django.utils import timezone
+    from datetime import timedelta
+
+    # Чистим старые куклы сравнения (старше 2 дней)
+    Doll.objects.filter(
+        owner=None,
+        name='__comparison__',
+        updated_at__lt=timezone.now() - timedelta(days=2)
+    ).delete()
+
+    doll_id = request.session.get('comparison_doll_id')
+    if doll_id:
+        try:
+            return Doll.objects.get(pk=doll_id, owner=None, name='__comparison__')
+        except Doll.DoesNotExist:
+            pass
+
+    doll = Doll.objects.create(owner=None, name='__comparison__')
+    for slot_type, _ in SlotType.choices:
+        DollSlot.objects.create(doll=doll, slot_type=slot_type)
+    request.session['comparison_doll_id'] = doll.pk
+    return doll
+
+
+def _get_doll(request, doll_id=None):
+    """Получить куклу для текущего пользователя или гостя."""
+    comp_id = request.session.get('comparison_doll_id')
+
+    # Если запрашивается кукла сравнения — она всегда owner=None
+    if doll_id and comp_id and int(doll_id) == comp_id:
+        return get_object_or_404(Doll, pk=doll_id, owner=None, name='__comparison__')
+
+    if request.user.is_authenticated:
+        return get_object_or_404(Doll, pk=doll_id, owner=request.user)
+    else:
+        if doll_id:
+            guest_id = request.session.get('guest_doll_id')
+            if guest_id and int(doll_id) == guest_id:
+                return get_object_or_404(Doll, pk=doll_id, owner=None)
+        guest_id = request.session.get('guest_doll_id')
+        return get_object_or_404(Doll, pk=guest_id, owner=None)
+
+
+def index(request):
+    return _render_index(request)
+
+
+def _render_index(request):
+    """Основная логика рендера калькулятора."""
+    if request.user.is_authenticated:
+        slot = int(request.GET.get('slot', 0))
+        slot = max(0, min(slot, settings.DOLL_SLOTS_PER_USER - 1))
+        doll = _get_user_doll(request, slot)
+        user_dolls = Doll.objects.filter(owner=request.user).order_by('slot_order')
+    else:
+        doll = _get_or_create_session_doll(request)
+        user_dolls = []
+        slot = None
+
+    context = build_index_context(request, doll, user_dolls, slot, settings)
+    return render(request, 'calculator/index.html', context)
+
+
+def doll_public(request, uuid):
+    """Открыть снимок куклы по ссылке."""
+    from .models import DollSnapshot
+    snapshot = get_object_or_404(DollSnapshot, uuid=uuid)
+
+    if request.user.is_authenticated:
+        slot = int(request.GET.get('slot', 0))
+        slot = max(0, min(slot, settings.DOLL_SLOTS_PER_USER - 1))
+        target = _get_user_doll(request, slot)
+    else:
+        target = _get_or_create_session_doll(request)
+
+    restore_doll_from_snapshot(target, snapshot.state)
+    return _render_index(request)
+
+
+@require_POST
+def api_select_item(request):
+    """API: выбрать предмет в слот. Копирует базовые статы как кастомные."""
+    data = json.loads(request.body)
+    doll = _get_doll(request, data.get('doll_id'))
+    slot_type = data.get('slot_type')
+    item_id = data.get('item_id')
+
+    doll_slot = get_object_or_404(DollSlot, doll=doll, slot_type=slot_type)
+
+    if not item_id:
+        # Снять предмет
+        doll_slot.item = None
+        doll_slot.save()
+        doll_slot.custom_stats.all().delete()
+    else:
+        item = get_object_or_404(Item, pk=item_id, slot_type=slot_type)
+        # Если предмет сменился — чистим старые статы
+        if doll_slot.item_id != item.pk:
+            doll_slot.custom_stats.all().delete()
+        doll_slot.item = item
+        doll_slot.save()
+        # Копируем базовые статы нового предмета (если ещё нет)
+        existing_stat_ids = set(doll_slot.custom_stats.values_list('stat_id', flat=True))
+        for item_stat in item.stats.select_related('stat').all():
+            if item_stat.stat_id not in existing_stat_ids:
+                DollSlotStat.objects.create(
+                    doll_slot=doll_slot,
+                    stat=item_stat.stat,
+                    value=item_stat.base_value,
+                )
+
+    fresh_doll = Doll.objects.get(pk=doll.pk)
+    save_stats_snapshot(fresh_doll)
+
+    # Возвращаем статы слота для модалки
+    slot_stats = []
+    if doll_slot.item:
+        for entry in doll_slot.get_stats_with_diff():
+            slot_stats.append({
+                'stat_id': entry['stat'].pk,
+                'stat_slug': entry['stat'].slug,
+                'stat_name': entry['stat'].name_ru,
+                'is_percent': entry['stat'].is_percent,
+                'base_value': entry['base_value'],
+                'custom_value': entry['custom_value'],
+                'diff_pct': entry['diff_pct'],
+            })
+
+    return JsonResponse({
+        'ok': True,
+        'stats': calculate_doll_stats(fresh_doll),
+        'effects': get_active_effects(fresh_doll),
+        'slot_stats': slot_stats,
+        'item_name': doll_slot.item.name if doll_slot.item else None,
+        'item_rarity': doll_slot.item.rarity if doll_slot.item else None,
+        'image_url': doll_slot.item.image.url if doll_slot.item and doll_slot.item.image and doll_slot.item.image.name else None,
+    })
+
+
+@require_POST
+def api_get_slot_stats(request):
+    """API: получить статы слота для редактирования."""
+    data = json.loads(request.body)
+    doll = _get_doll(request, data.get('doll_id'))
+    slot_type = data.get('slot_type')
+    doll_slot = get_object_or_404(DollSlot, doll=doll, slot_type=slot_type)
+
+    slot_stats = []
+    if doll_slot.item:
+        for entry in doll_slot.get_stats_with_diff():
+            slot_stats.append({
+                'stat_id': entry['stat'].pk,
+                'stat_slug': entry['stat'].slug,
+                'stat_name': entry['stat'].name_ru,
+                'is_percent': entry['stat'].is_percent,
+                'base_value': entry['base_value'],
+                'custom_value': entry['custom_value'],
+                'diff_pct': entry['diff_pct'],
+            })
+
+    return JsonResponse({
+        'ok': True,
+        'slot_stats': slot_stats,
+        'item_name': doll_slot.item.name if doll_slot.item else '',
+        'item_rarity': doll_slot.item.rarity if doll_slot.item else '',
+    })
+
+
+@require_POST
+def api_save_slot_stats(request):
+    """API: сохранить кастомные статы слота."""
+    data = json.loads(request.body)
+    doll = _get_doll(request, data.get('doll_id'))
+    slot_type = data.get('slot_type')
+    new_stats = data.get('stats', {})  # {stat_id: value}
+
+    doll_slot = get_object_or_404(DollSlot, doll=doll, slot_type=slot_type)
+
+    for stat_id, value in new_stats.items():
+        value = max(0, float(value))  # только положительные
+        DollSlotStat.objects.update_or_create(
+            doll_slot=doll_slot,
+            stat_id=int(stat_id),
+            defaults={'value': value},
+        )
+
+    fresh_doll = Doll.objects.get(pk=doll.pk)
+    save_stats_snapshot(fresh_doll)
+
+    return JsonResponse({
+        'ok': True,
+        'stats': calculate_doll_stats(fresh_doll),
+        'effects': get_active_effects(fresh_doll),
+    })
+
+
+@require_POST
+def api_update_skill(request):
+    data = json.loads(request.body)
+    doll = _get_doll(request, data.get('doll_id'))
+    node_id = data.get('node_id')
+    action = data.get('action', 'add')
+    node = get_object_or_404(SkillNode, pk=node_id)
+    doll_skill, _ = DollSkill.objects.get_or_create(doll=doll, node=node)
+
+    if action == 'add':
+        if not can_unlock_node(doll, node):
+            return JsonResponse({'ok': False, 'error': 'Не разблокировано'}, status=400)
+        if get_available_points(doll) <= 0:
+            return JsonResponse({'ok': False, 'error': 'Нет очков'}, status=400)
+        if doll_skill.points_invested < node.max_points:
+            doll_skill.points_invested += 1
+            doll_skill.save()
+    elif action == 'remove':
+        if doll_skill.points_invested > 0:
+            if not can_remove_point(doll, node):
+                return JsonResponse({'ok': False, 'error': 'Сначала откатите зависимые навыки'}, status=400)
+            doll_skill.points_invested -= 1
+            doll_skill.save()
+
+    fresh_doll = Doll.objects.get(pk=doll.pk)
+    save_stats_snapshot(fresh_doll)
+    stats = calculate_doll_stats(fresh_doll)
+
+    return JsonResponse({
+        'ok': True,
+        'invested': doll_skill.points_invested,
+        'available_points': get_available_points(fresh_doll),
+        'stats': stats,
+    })
+
+
+@require_POST
+def api_reset_skills(request):
+    data = json.loads(request.body)
+    doll = _get_doll(request, data.get('doll_id'))
+    doll.skill_points.all().update(points_invested=0)
+    fresh_doll = Doll.objects.get(pk=doll.pk)
+    save_stats_snapshot(fresh_doll)
+    return JsonResponse({
+        'ok': True,
+        'available_points': get_available_points(fresh_doll),
+        'stats': calculate_doll_stats(fresh_doll),
+    })
+
+
+@require_POST
+@login_required
+def api_save_doll(request):
+    """API: сохранить куклу — записывает полное состояние."""
+    data = json.loads(request.body)
+    doll = get_object_or_404(Doll, pk=data.get('doll_id'), owner=request.user)
+    name = data.get('name', '').strip()
+    if name:
+        doll.name = name[:64]
+        doll.save(update_fields=['name'])
+    save_doll_state(doll)
+    save_stats_snapshot(doll)
+    return JsonResponse({
+        'ok': True,
+        'public_url': request.build_absolute_uri(doll.get_absolute_url()),
+    })
+
+
+@require_POST
+def api_set_level(request):
+    data = json.loads(request.body)
+    doll = _get_doll(request, data.get('doll_id'))
+    level = int(data.get('level', 1))
+    doll.character_level = max(1, min(200, level))
+    doll.save(update_fields=['character_level'])
+    fresh_doll = Doll.objects.get(pk=doll.pk)
+    return JsonResponse({
+        'ok': True,
+        'available_points': get_available_points(fresh_doll),
+        'is_over_budget': is_over_budget(fresh_doll),
+    })
+
+
+@require_POST
+def api_equip_set(request):
+    """API: надеть все предметы сета сразу."""
+    data = json.loads(request.body)
+    doll = _get_doll(request, data.get('doll_id'))
+    set_id = data.get('set_id')
+
+    from catalog.models import ItemSet
+    item_set = get_object_or_404(ItemSet, pk=set_id)
+
+    equipped = []
+    for item in item_set.items.filter(is_active=True):
+        doll_slot = DollSlot.objects.filter(doll=doll, slot_type=item.slot_type).first()
+        if not doll_slot:
+            continue
+        doll_slot.item = item
+        doll_slot.save()
+        # Копируем базовые статы
+        doll_slot.custom_stats.all().delete()
+        for item_stat in item.stats.select_related('stat').all():
+            DollSlotStat.objects.create(
+                doll_slot=doll_slot,
+                stat=item_stat.stat,
+                value=item_stat.base_value,
+            )
+        equipped.append({'slot_type': item.slot_type, 'item_name': item.name,
+                         'item_rarity': item.rarity,
+                         'image_url': item.image.url if item.image else None})
+
+    fresh_doll = Doll.objects.get(pk=doll.pk)
+    save_stats_snapshot(fresh_doll)
+
+    return JsonResponse({
+        'ok': True,
+        'stats': calculate_doll_stats(fresh_doll),
+        'effects': get_active_effects(fresh_doll),
+        'equipped': equipped,
+    })
+
+
+@require_POST
+def api_get_item_stats(request):
+    """API: получить базовые статы предмета для куклы сравнения."""
+    import json as _json
+    data = _json.loads(request.body)
+    item_id = data.get('item_id')
+    from catalog.models import Item
+    item = get_object_or_404(Item, pk=item_id)
+    stats = {s.stat.slug: s.base_value for s in item.stats.select_related('stat').all()}
+    return JsonResponse({
+        'ok': True,
+        'item_name': item.name,
+        'rarity': item.rarity,
+        'set_id': item.item_set_id,
+        'image_url': item.image.url if item.image and item.image.name else None,
+        'stats': stats,
+    })
+
+
+@require_POST
+def api_get_comparison_doll(request):
+    """API: получить или создать куклу сравнения."""
+    doll = _get_or_create_comparison_doll(request)
+    fresh_doll = Doll.objects.get(pk=doll.pk)
+
+    from .services import calculate_doll_stats, get_available_points
+    doll_slots = {}
+    for ds in fresh_doll.slots.select_related('item').prefetch_related('custom_stats__stat').all():
+        doll_slots[ds.slot_type] = {
+            'item_id': ds.item_id,
+            'item_name': ds.item.name if ds.item else None,
+            'item_rarity': ds.item.rarity if ds.item else None,
+            'image_url': ds.item.image.url if ds.item and ds.item.image and ds.item.image.name else None,
+        }
+
+    invested_map = {
+        ds.node_id: ds.points_invested
+        for ds in fresh_doll.skill_points.all()
+    }
+
+    return JsonResponse({
+        'ok': True,
+        'doll_id': fresh_doll.pk,
+        'level': fresh_doll.character_level,
+        'stats': calculate_doll_stats(fresh_doll),
+        'available_points': get_available_points(fresh_doll),
+        'slots': doll_slots,
+        'invested_map': invested_map,
+    })
+
+
+@require_POST
+@login_required
+def api_copy_doll(request):
+    """API: сохранить текущую (временную или обычную) куклу в слот пользователя."""
+    data = json.loads(request.body)
+    slot_order = int(data.get('slot_order', 0))
+    source_id = data.get('doll_id')
+
+    source = get_object_or_404(Doll, pk=source_id)
+
+    target, created = Doll.objects.get_or_create(
+        owner=request.user,
+        slot_order=slot_order,
+        defaults={'name': source.name if source.name != '__temp__' else 'Кукла ' + str(slot_order + 1)},
+    )
+    if not created:
+        target.name = source.name if source.name != '__temp__' else target.name
+        target.character_level = source.character_level
+        target.save()
+
+    if created:
+        for slot_type, _ in SlotType.choices:
+            DollSlot.objects.create(doll=target, slot_type=slot_type)
+
+    for src_slot in source.slots.select_related('item').prefetch_related('custom_stats__stat').all():
+        tgt_slot, _ = DollSlot.objects.get_or_create(doll=target, slot_type=src_slot.slot_type)
+        tgt_slot.item = src_slot.item
+        tgt_slot.save()
+        tgt_slot.custom_stats.all().delete()
+        for cs in src_slot.custom_stats.all():
+            DollSlotStat.objects.create(doll_slot=tgt_slot, stat=cs.stat, value=cs.value)
+
+    target.skill_points.all().delete()
+    for sp in source.skill_points.all():
+        DollSkill.objects.create(doll=target, node=sp.node, points_invested=sp.points_invested)
+
+    target.character_level = source.character_level
+    save_stats_snapshot(target)
+
+    return JsonResponse({'ok': True, 'slot_order': slot_order})
+
+
+@require_POST
+@login_required
+def api_load_doll(request):
+    """API: загрузить сохранённое состояние куклы."""
+    data = json.loads(request.body)
+    doll = get_object_or_404(Doll, pk=data.get('doll_id'), owner=request.user)
+    if not doll.saved_state:
+        return JsonResponse({'ok': False, 'error': 'Нет сохранённого состояния'})
+    restored = restore_doll_state(doll)
+    if restored:
+        fresh = Doll.objects.get(pk=doll.pk)
+        return JsonResponse({'ok': True, 'redirect': f'/?slot={doll.slot_order}'})
+    return JsonResponse({'ok': False, 'error': 'Ошибка восстановления'})
+
+
+@require_POST
+@login_required
+def api_create_snapshot(request):
+    """API: создать снимок куклы для публичной ссылки."""
+    data = json.loads(request.body)
+    doll = get_object_or_404(Doll, pk=data.get('doll_id'), owner=request.user)
+    from .models import DollSnapshot
+    state = build_doll_snapshot_state(doll)
+    snapshot = DollSnapshot.objects.create(doll=doll, state=state)
+    return JsonResponse({
+        'ok': True,
+        'url': request.build_absolute_uri(f'/share/{snapshot.uuid}/'),
+    })
+=== C:\Dev\gkcalc\gkcalc\calculator\__init__.py ===
+=== C:\Dev\gkcalc\gkcalc\catalog\admin.py ===
+from django.contrib import admin
+from .models import Stat, Item, ItemStat, ItemSet, SetBonus, Effect
+
+
+class ItemStatInline(admin.TabularInline):
+    model = ItemStat
+    extra = 3
+    fields = ['stat', 'base_value']
+
+
+class SetBonusInline(admin.TabularInline):
+    model = SetBonus
+    extra = 2
+    fields = ['pieces_required', 'stat', 'value', 'effect']
+
+
+@admin.register(Effect)
+class EffectAdmin(admin.ModelAdmin):
+    list_display = ['name', 'description']
+    search_fields = ['name']
+
+
+@admin.register(ItemSet)
+class ItemSetAdmin(admin.ModelAdmin):
+    list_display = ['name', 'rarity', 'item_count']
+    list_filter = ['rarity']
+    search_fields = ['name']
+    inlines = [SetBonusInline]
+
+    def item_count(self, obj):
+        return obj.items.count()
+    item_count.short_description = 'Предметов'
+
+
+@admin.register(Item)
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slot_type', 'rarity', 'item_set', 'is_active']
+    list_filter = ['slot_type', 'rarity', 'item_set', 'is_active']
+    search_fields = ['name']
+    inlines = [ItemStatInline]
+
+
+@admin.register(Stat)
+class StatAdmin(admin.ModelAdmin):
+    list_display = ['name_ru', 'slug', 'category', 'order', 'is_percent']
+    list_editable = ['order']
+    ordering = ['order']
+
+
+@admin.register(ItemStat)
+class ItemStatAdmin(admin.ModelAdmin):
+    list_display = ['item', 'stat', 'base_value']
+    list_filter = ['stat']
+
+
+@admin.register(SetBonus)
+class SetBonusAdmin(admin.ModelAdmin):
+    list_display = ['item_set', 'pieces_required', 'stat', 'value', 'effect']
+    list_filter = ['item_set']
+=== C:\Dev\gkcalc\gkcalc\catalog\apps.py ===
+from django.apps import AppConfig
+
+
+class CatalogConfig(AppConfig):
+    name = 'catalog'
+=== C:\Dev\gkcalc\gkcalc\catalog\models.py ===
+from django.db import models
+
+
+class SlotType(models.TextChoices):
+    MAIN_WEAPON   = 'main_weapon',   'Основное оружие'
+    OFF_WEAPON    = 'off_weapon',    'Дополнительное оружие'
+    HELMET        = 'helmet',        'Шлем'
+    ARMOR         = 'armor',         'Броня'
+    AMPLIFIER     = 'amplifier',     'Усилитель'
+    ACCESSORY     = 'accessory',     'Аксессуар'
+    GUARDIAN      = 'guardian',      'Дух-хранитель'
+
+
+class Stat(models.Model):
+    """Справочник всех возможных статов."""
+    slug = models.SlugField(unique=True, verbose_name='Идентификатор')
+    name_ru = models.CharField(max_length=64, verbose_name='Название')
+    CATEGORY_POWER = 'power'
+    CATEGORY_RESIST = 'resistance'
+    CATEGORY_CHOICES = [
+        (CATEGORY_POWER, 'Мощь'),
+        (CATEGORY_RESIST, 'Сопротивление'),
+    ]
+    category = models.CharField(max_length=16, choices=CATEGORY_CHOICES, default=CATEGORY_POWER)
+    order = models.PositiveSmallIntegerField(default=0, verbose_name='Порядок отображения')
+    is_percent = models.BooleanField(default=False, verbose_name='В процентах')
+
+    class Meta:
+        verbose_name = 'Стат'
+        verbose_name_plural = 'Статы'
+        ordering = ['order']
+
+    def __str__(self):
+        return self.name_ru
+
+
+class Rarity(models.TextChoices):
+    COMMON    = 'common',    'Common'
+    UNCOMMON  = 'uncommon',  'Uncommon'
+    RARE      = 'rare',      'Rare'
+    EPIC      = 'epic',      'Epic'
+    CRAFTED   = 'crafted',   'Crafted'
+    LIMITED   = 'limited',   'Limited'
+    LEGENDARY = 'legendary', 'Legendary'
+
+
+class Effect(models.Model):
+    """Эффект — текстовое описание особого свойства."""
+    name = models.CharField(max_length=128, verbose_name='Название эффекта')
+    description = models.TextField(verbose_name='Описание эффекта')
+
+    class Meta:
+        verbose_name = 'Эффект'
+        verbose_name_plural = 'Эффекты'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class ItemSet(models.Model):
+    """Сет предметов."""
+    name = models.CharField(max_length=128, verbose_name='Название сета')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    rarity = models.CharField(
+        max_length=16, choices=Rarity.choices,
+        default=Rarity.COMMON, verbose_name='Редкость'
+    )
+
+    class Meta:
+        verbose_name = 'Сет'
+        verbose_name_plural = 'Сеты'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class SetBonus(models.Model):
+    """Бонус сета при надевании N предметов."""
+    item_set = models.ForeignKey(ItemSet, on_delete=models.CASCADE, related_name='bonuses')
+    pieces_required = models.PositiveSmallIntegerField(verbose_name='Количество предметов')
+    stat = models.ForeignKey(
+        Stat, on_delete=models.CASCADE, null=True, blank=True,
+        verbose_name='Стат'
+    )
+    value = models.FloatField(default=0, verbose_name='Значение бонуса')
+    effect = models.ForeignKey(
+        Effect, on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name='Эффект'
+    )
+
+    class Meta:
+        verbose_name = 'Бонус сета'
+        verbose_name_plural = 'Бонусы сета'
+        ordering = ['item_set', 'pieces_required']
+
+    def __str__(self):
+        stat_name = self.stat.name_ru if self.stat else '—'
+        return f'{self.item_set.name} ({self.pieces_required} пред.): +{self.value} {stat_name}'
+
+
+class Item(models.Model):
+    """Предмет в базе — заполняется администратором."""
+    name = models.CharField(max_length=128, verbose_name='Название')
+    slot_type = models.CharField(max_length=20, choices=SlotType.choices, verbose_name='Тип слота')
+    rarity = models.CharField(
+        max_length=16, choices=Rarity.choices,
+        default=Rarity.COMMON, verbose_name='Редкость'
+    )
+    item_set = models.ForeignKey(
+        ItemSet, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='items',
+        verbose_name='Сет'
+    )
+    # Эффект — только для духа-хранителя, но технически доступно любому предмету
+    effect = models.ForeignKey(
+        Effect, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name='Эффект'
+    )
+    description = models.TextField(blank=True, verbose_name='Описание')
+    image = models.ImageField(upload_to='items/', blank=True, null=True, verbose_name='Иконка')
+    is_active = models.BooleanField(default=True, verbose_name='Активен')
+
+    class Meta:
+        verbose_name = 'Предмет'
+        verbose_name_plural = 'Предметы'
+        ordering = ['slot_type', 'name']
+
+    def __str__(self):
+        return f'{self.get_slot_type_display()} — {self.name}'
+
+
+class ItemStat(models.Model):
+    """Базовый стат предмета (без учёта качества и грейда)."""
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='stats')
+    stat = models.ForeignKey(Stat, on_delete=models.CASCADE)
+    base_value = models.FloatField(verbose_name='Базовое значение')
+
+    class Meta:
+        verbose_name = 'Стат предмета'
+        verbose_name_plural = 'Статы предмета'
+        unique_together = [('item', 'stat')]
+
+    def __str__(self):
+        return f'{self.item.name}: {self.stat.name_ru} = {self.base_value}'
+=== C:\Dev\gkcalc\gkcalc\catalog\tests.py ===
+from django.test import TestCase
+
+# Create your tests here.
+=== C:\Dev\gkcalc\gkcalc\catalog\urls.py ===
+from django.urls import path
+from django.http import JsonResponse
+from .models import Item
+
+app_name = 'catalog'
+
+def items_by_slot(request):
+    slot_type = request.GET.get('slot_type', '')
+    items = list(Item.objects.filter(slot_type=slot_type, is_active=True).values('id', 'name'))
+    return JsonResponse({'items': items})
+
+urlpatterns = [
+    path('items/', items_by_slot, name='items_by_slot'),
+]
+=== C:\Dev\gkcalc\gkcalc\catalog\views.py ===
+from django.shortcuts import render
+
+# Create your views here.
+=== C:\Dev\gkcalc\gkcalc\catalog\__init__.py ===
+=== C:\Dev\gkcalc\gkcalc\gkcalc\asgi.py ===
+"""
+ASGI config for gkcalc project.
+
+It exposes the ASGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
+"""
+
+import os
+
+from django.core.asgi import get_asgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gkcalc.settings')
+
+application = get_asgi_application()
+=== C:\Dev\gkcalc\gkcalc\gkcalc\settings.py ===
+from pathlib import Path
+from decouple import config
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', default=True, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
+    'accounts',
+    'catalog',
+    'calculator',
+    'skills',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'gkcalc.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'gkcalc.wsgi.application'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DB_NAME', default='gkcalc'),
+        'USER': config('DB_USER', default='postgres'),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
+    }
+}
+
+AUTH_USER_MODEL = 'accounts.User'
+
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+LANGUAGE_CODE = 'ru-ru'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+BASE_CHARACTER_STATS = {
+    'health':      100,
+    'attack':      12,
+    'defense':     2,
+    'accuracy':    100,
+    'crit_chance': 5,
+    'crit_damage': 125,
+    'pure_chance': 0,
+    'pure_damage': 5,
+    'evasion':     3,
+    'reflection':  0,
+    'vampirism':   0,
+}
+
+DOLL_SLOTS_PER_USER = 3
+
+# ── Логирование ──
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'errors.log',
+            'maxBytes': 1024 * 1024 * 5,  # 5MB
+            'backupCount': 3,
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'calculator': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
+=== C:\Dev\gkcalc\gkcalc\gkcalc\urls.py ===
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib.sitemaps.views import sitemap
+from calculator.sitemaps import StaticSitemap
+
+sitemaps = {'static': StaticSitemap()}
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('accounts/', include('accounts.urls')),
+    path('', include('calculator.urls')),
+    path('catalog/', include('catalog.urls')),
+    path('skills/', include('skills.urls')),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+=== C:\Dev\gkcalc\gkcalc\gkcalc\wsgi.py ===
+"""
+WSGI config for gkcalc project.
+
+It exposes the WSGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
+"""
+
+import os
+
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gkcalc.settings')
+
+application = get_wsgi_application()
+=== C:\Dev\gkcalc\gkcalc\gkcalc\__init__.py ===
+=== C:\Dev\gkcalc\gkcalc\skills\admin.py ===
+from django.contrib import admin
+from .models import SkillNode, SkillEdge, SkillBonus
+
+
+class SkillBonusInline(admin.TabularInline):
+    model = SkillBonus
+    extra = 2
+
+
+@admin.register(SkillNode)
+class SkillNodeAdmin(admin.ModelAdmin):
+    list_display = ['name', 'branch', 'order', 'max_points']
+    list_filter = ['branch']
+    ordering = ['branch', 'order']
+    inlines = [SkillBonusInline]
+
+
+@admin.register(SkillEdge)
+class SkillEdgeAdmin(admin.ModelAdmin):
+    list_display = ['from_node', 'to_node', 'edge_type']
+
+
+@admin.register(SkillBonus)
+class SkillBonusAdmin(admin.ModelAdmin):
+    list_display = ['node', 'stat', 'value_level_1', 'value_level_2', 'value_level_3']
+    list_filter = ['node__branch']
+    list_editable = ['value_level_1', 'value_level_2', 'value_level_3']
+=== C:\Dev\gkcalc\gkcalc\skills\apps.py ===
+from django.apps import AppConfig
+
+
+class SkillsConfig(AppConfig):
+    name = 'skills'
+=== C:\Dev\gkcalc\gkcalc\skills\models.py ===
+from django.db import models
+
+
+class SkillBranch(models.TextChoices):
+    ATTACK  = 'attack',  'Атака'
+    HEALTH  = 'health',  'Здоровье'
+    DEFENSE = 'defense', 'Защита'
+
+
+class SkillNode(models.Model):
+    """Узел дерева навыков."""
+    branch = models.CharField(max_length=16, choices=SkillBranch.choices, verbose_name='Ветка')
+    order = models.PositiveSmallIntegerField(verbose_name='Порядок (строка сверху вниз)')
+    name = models.CharField(max_length=64, verbose_name='Название навыка')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    max_points = models.PositiveSmallIntegerField(default=1, verbose_name='Макс. очков (1-3)')
+    icon = models.CharField(max_length=64, blank=True, verbose_name='CSS-класс иконки')
+
+    class Meta:
+        verbose_name = 'Узел навыка'
+        verbose_name_plural = 'Узлы навыков'
+        ordering = ['branch', 'order']
+        unique_together = [('branch', 'order')]
+
+    def __str__(self):
+        return f'[{self.get_branch_display()}] {self.name} (ряд {self.order})'
+
+
+class SkillEdge(models.Model):
+    """Связь между узлами (вертикальная или диагональная)."""
+    EDGE_VERTICAL  = 'vertical'
+    EDGE_DIAGONAL  = 'diagonal'
+    EDGE_CHOICES = [
+        (EDGE_VERTICAL, 'Вертикальная'),
+        (EDGE_DIAGONAL, 'Диагональная'),
+    ]
+    from_node = models.ForeignKey(SkillNode, on_delete=models.CASCADE, related_name='edges_from')
+    to_node   = models.ForeignKey(SkillNode, on_delete=models.CASCADE, related_name='edges_to')
+    edge_type = models.CharField(max_length=16, choices=EDGE_CHOICES, default=EDGE_VERTICAL)
+
+    class Meta:
+        verbose_name = 'Связь навыков'
+        verbose_name_plural = 'Связи навыков'
+        unique_together = [('from_node', 'to_node')]
+
+    def __str__(self):
+        return f'{self.from_node} → {self.to_node}'
+
+
+class SkillBonus(models.Model):
+    """Бонус к стату за вложенные очки в узел. Каждый уровень (кружок) — своё значение."""
+    node = models.ForeignKey(SkillNode, on_delete=models.CASCADE, related_name='bonuses')
+    stat = models.ForeignKey('catalog.Stat', on_delete=models.CASCADE)
+    value_level_1 = models.FloatField(verbose_name='Значение за 1-й уровень')
+    value_level_2 = models.FloatField(null=True, blank=True, verbose_name='Значение за 2-й уровень')
+    value_level_3 = models.FloatField(null=True, blank=True, verbose_name='Значение за 3-й уровень')
+
+    class Meta:
+        verbose_name = 'Бонус навыка'
+        verbose_name_plural = 'Бонусы навыков'
+        unique_together = [('node', 'stat')]
+
+    def get_value_for_points(self, points_invested):
+        """Суммарный бонус за вложенные очки."""
+        values = [self.value_level_1, self.value_level_2, self.value_level_3]
+        total = 0.0
+        for i in range(points_invested):
+            v = values[i] if i < len(values) and values[i] is not None else 0
+            total += v
+        return total
+
+    def __str__(self):
+        return f'{self.node.name}: +{self.value_level_1} {self.stat.name_ru}/ур.1'
+=== C:\Dev\gkcalc\gkcalc\skills\tests.py ===
+from django.test import TestCase
+
+# Create your tests here.
+=== C:\Dev\gkcalc\gkcalc\skills\urls.py ===
+from django.urls import path
+app_name = 'skills'
+urlpatterns = []
+=== C:\Dev\gkcalc\gkcalc\skills\views.py ===
+from django.shortcuts import render
+
+# Create your views here.
+=== C:\Dev\gkcalc\gkcalc\skills\__init__.py ===
+=== C:\Dev\gkcalc\gkcalc\static\css\gkc.css ===
+/* =============================================
+   GKCalc — основной CSS
+   Тёмная тема по умолчанию, переключатель через data-theme="light"
+   ============================================= */
+
+/* ── Локальные шрифты ── */
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('/static/fonts/rajdhani-v17-latin-300.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('/static/fonts/rajdhani-v17-latin-regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('/static/fonts/rajdhani-v17-latin-500.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('/static/fonts/rajdhani-v17-latin-600.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('/static/fonts/rajdhani-v17-latin-700.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Exo 2';
+  src: url('/static/fonts/exo-2-v26-latin-300.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Exo 2';
+  src: url('/static/fonts/exo-2-v26-latin-regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Exo 2';
+  src: url('/static/fonts/exo-2-v26-latin-500.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Exo 2';
+  src: url('/static/fonts/exo-2-v26-latin-600.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+:root {
+  --bg-primary:    #0d0f14;
+  --bg-secondary:  #151820;
+  --bg-card:       #1a1e2a;
+  --bg-hover:      #222638;
+  --border:        #2a2f42;
+  --border-bright: #3d4460;
+
+  --accent:        #f5a623;
+  --accent-dim:    #b87a18;
+  --accent-glow:   rgba(245, 166, 35, 0.15);
+
+  --star-gray:     #4a4a5a;
+  --star-yellow:   #f5c518;
+  --star-purple:   #a855f7;
+  --star-red:      #ef4444;
+
+  --text-primary:  #e8eaf0;
+  --text-secondary:#8b90a8;
+  --text-muted:    #525770;
+
+  --power-color:   #60a5fa;
+  --resist-color:  #34d399;
+  --skill-color:   #a78bfa;
+
+  --font-display:  'Rajdhani', sans-serif;
+  --font-body:     'Exo 2', sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --transition: 0.18s ease;
+}
+
+[data-theme="light"] {
+  --bg-primary:    #f0f2f8;
+  --bg-secondary:  #e4e8f2;
+  --bg-card:       #ffffff;
+  --bg-hover:      #eef0f8;
+  --border:        #d0d5e8;
+  --border-bright: #a0a8cc;
+  --text-primary:  #1a1e2a;
+  --text-secondary:#555a78;
+  --text-muted:    #8890b0;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* ─── Скроллбар ─── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+
+/* ─── Navbar ─── */
+.gkc-nav {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+.gkc-logo {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1px;
+  text-decoration: none;
+}
+.gkc-logo span { color: var(--text-secondary); font-weight: 400; font-size: 0.9rem; }
+
+/* ─── Трёхколоночный layout ─── */
+/* gkc-layout перенесён в адаптив */
+/* gkc-col перенесён в адаптив */
+
+/* ─── Карточки ─── */
+.gkc-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  margin-bottom: 8px;
+}
+.gkc-card-title {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ─── Статы ─── */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  transition: background var(--transition);
+}
+.stat-row:hover { background: var(--bg-hover); border-radius: 4px; }
+.stat-name { color: var(--text-secondary); font-size: 0.8rem; }
+.stat-value {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  min-width: 60px;
+  text-align: right;
+}
+.stat-value.power   { color: var(--power-color); }
+.stat-value.resist  { color: var(--resist-color); }
+
+/* ─── Слоты персонажа ─── */
+.character-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 8px;
+  gap: 8px;
+}
+.equipment-grid {
+  display: grid;
+  grid-template-columns: 72px auto 72px;
+  gap: 8px;
+  align-items: center;
+}
+.char-figure {
+  grid-column: 2;
+  grid-row: 1 / 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 30px;
+  min-height: 220px;
+}
+.char-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--border-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+
+/* ─── Слот предмета ─── */
+.item-slot {
+  width: 68px;
+  height: 68px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--transition), background var(--transition);
+  overflow: hidden;
+}
+.item-slot:hover { border-color: var(--accent); background: var(--bg-hover); }
+.item-slot.has-item { border-color: var(--accent-dim); }
+.item-slot-icon { font-size: 1.6rem; line-height: 1; }
+.item-slot-name {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0 2px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Звёзды (грейды) ─── */
+.stars-row {
+  display: flex;
+  gap: 1px;
+  justify-content: center;
+  margin-top: 2px;
+}
+.star {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--star-gray);
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+.star:hover { transform: scale(1.3); }
+.star.yellow { background: var(--star-yellow); }
+.star.purple { background: var(--star-purple); }
+.star.red    { background: var(--star-red); }
+
+/* ─── Дерево навыков ─── */
+.skill-branch-title {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--skill-color);
+  text-align: center;
+  margin-bottom: 4px;
+}
+.skill-tree {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+}
+.skill-node {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 72px;
+  margin: 0 auto;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition);
+  font-size: 0.6rem;
+  text-align: center;
+  padding: 4px;
+  gap: 2px;
+}
+.skill-node:hover:not(.locked) { border-color: var(--skill-color); background: var(--bg-hover); }
+.skill-node.locked { opacity: 0.35; cursor: not-allowed; }
+.skill-node.active { border-color: var(--skill-color); background: rgba(167, 139, 250, 0.1); }
+.skill-node.full   { border-color: #a855f7; background: rgba(168, 85, 247, 0.2); }
+.skill-points-dots {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
+}
+.skill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border);
+  border: 1px solid var(--border-bright);
+}
+.skill-dot.filled { background: var(--skill-color); border-color: var(--skill-color); }
+
+/* ─── Уровень персонажа ─── */
+.level-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.level-badge input[type=number] {
+  width: 48px;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+}
+.available-points {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* ─── Слоты куклы (вкладки) ─── */
+.doll-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.doll-tab {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition);
+}
+.doll-tab.active, .doll-tab:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* ─── Модальное окно (предмет) ─── */
+.gkc-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gkc-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  min-width: 300px;
+  max-width: 420px;
+  width: 90vw;
+}
+.gkc-modal-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+/* ─── Кнопки ─── */
+.btn-gkc {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: opacity var(--transition);
+}
+.btn-gkc:hover { opacity: 0.85; }
+.btn-gkc-outline {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.btn-gkc-outline:hover { background: var(--accent-glow); }
+
+/* ─── Переключатель темы ─── */
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all var(--transition);
+}
+
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ─── Форма ─── */
+.gkc-form input, .gkc-form select {
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 8px 10px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.gkc-form input:focus, .gkc-form select:focus {
+  border-color: var(--accent);
+}
+.gkc-form label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin-bottom: 3px;
+}
+
+/* ─── Toast-уведомление ─── */
+.gkc-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 200px;  /* отступ левой колонки */
+  width: 260px; /* ширина центральной колонки */
+  text-align: center;
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  color: var(--accent);
+  z-index: 2000;
+  animation: toastIn 0.2s ease;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Адаптив ─── */
+@media (max-width: 960px) {
+  .gkc-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    height: auto;
+  }
+  .gkc-col { border-right: none; border-bottom: 1px solid var(--border); }
+}
+
+/* ─── Улучшенные узлы навыков ─── */
+.skill-node-name {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+  text-align: center;
+  padding: 0 2px;
+}
+.skill-node.full .skill-node-name   { color: #c084fc; }
+.skill-node.active .skill-node-name { color: #a78bfa; }
+
+/* Точки навыка — крупнее и зеленее как в игре */
+.skill-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--border-bright);
+  border: 1px solid var(--border-bright);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.skill-dot.filled {
+  background: #4ade80;
+  border-color: #22c55e;
+  box-shadow: 0 0 4px rgba(74, 222, 128, 0.5);
+}
+.skill-node.full .skill-dot.filled {
+  background: #c084fc;
+  border-color: #a855f7;
+  box-shadow: 0 0 4px rgba(192, 132, 252, 0.5);
+}
+
+/* ─── Дерево навыков: круглые узлы ─── */
+.skill-tree-wrap {
+  position: relative;
+  width: 100%;
+}
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 6px;
+  padding: 6px 2px 10px;
+}
+.skill-node-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.skill-circle {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background-color: var(--bg-secondary);
+  background-image: url('/static/images/skill_point_64.png');
+  background-size: 55%;
+  background-repeat: no-repeat;
+  background-position: center 38%;
+  border: 2px solid var(--border-bright);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 6px;
+  cursor: pointer;
+  transition: border-color 0.18s, background-color 0.18s, box-shadow 0.18s;
+  position: relative;
+}
+.skill-circle:hover {
+  border-color: #4ade80;
+  box-shadow: 0 0 8px rgba(74,222,128,0.25);
+}
+/* Частично прокачан — зелёный */
+/* Зелёный фон через псевдоэлемент — книжка всегда видна */
+.skill-circle.skill-active,
+.skill-circle.skill-complete {
+  border-color: #4ade80;
+}
+.skill-circle.skill-active {
+  box-shadow: 0 0 6px rgba(74,222,128,0.3);
+}
+.skill-circle.skill-complete {
+  box-shadow: 0 0 8px rgba(74,222,128,0.35);
+}
+.skill-circle.skill-active::before,
+.skill-circle.skill-complete::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(74,222,128,0.18);
+  pointer-events: none;
+}
+.skill-circle-dots {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+  /* точки внизу круга, книжка сверху */
+}
+.skill-cdot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border-bright);
+  border: 1px solid var(--border-bright);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.skill-cdot.filled {
+  background: #4ade80;
+  border-color: #22c55e;
+  box-shadow: 0 0 5px rgba(74,222,128,0.6);
+}
+.skill-circle.skill-complete .skill-cdot.filled {
+  background: #4ade80;
+  border-color: #22c55e;
+  box-shadow: 0 0 5px rgba(74,222,128,0.6);
+}
+.skill-circle-label {
+  font-size: 0.62rem;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.2;
+  max-width: 64px;
+  word-break: break-word;
+}
+.skill-circle.skill-active ~ .skill-circle-label,
+.skill-circle.skill-complete ~ .skill-circle-label {
+  color: var(--text-primary);
+}
+
+/* ─── Превышение бюджета очков — только счётчик ─── */
+#avail-pts-skill.over-budget {
+  color: #ef4444 !important;
+  cursor: help;
+}
+
+/* ─── Новая раскладка обмундирования ─── */
+.equip-layout {
+  display: grid;
+  grid-template-columns: 68px auto 68px;
+  gap: 6px;
+  align-items: center;
+}
+.equip-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+.equip-bottom-row {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: flex-end;
+  justify-content: center;
+}
+/* Дух-хранитель — 90% от обычного слота */
+.item-slot-sm {
+  width: 61px !important;
+  height: 61px !important;
+}
+.item-slot-sm .item-slot-name {
+  font-size: 0.48rem;
+}
+
+/* ─── Цвета редкости слотов ─── */
+.item-slot[data-rarity="common"]    { border-color: #6b7280; }
+.item-slot[data-rarity="uncommon"]  { border-color: #22c55e; }
+.item-slot[data-rarity="rare"]      { border-color: #3b82f6; }
+.item-slot[data-rarity="epic"]      { border-color: #a855f7; }
+.item-slot[data-rarity="crafted"]   { border-color: #1e3a5f; }
+.item-slot[data-rarity="limited"]   { border-color: #06b6d4; }
+.item-slot[data-rarity="legendary"] { border-color: #f59e0b; background: rgba(245,158,11,0.08); }
+
+/* ═══════════════════════════════════════
+   АДАПТИВ — Bootstrap переопределения
+   ═══════════════════════════════════════ */
+
+/* Убираем старые фиксированные размеры */
+
+
+.gkc-container {
+  position: relative;
+  max-width: 100%;
+}
+
+.gkc-row {
+  min-height: calc(100vh - 48px);
+  /* Десктоп — три колонки занимают ~50% экрана */
+  max-width: 50vw;
+}
+
+/* Колонки */
+.gkc-col {
+  overflow-y: auto;
+  padding: 10px 8px;
+  border-right: 1px solid var(--border);
+  height: calc(100vh - 48px);
+}
+.gkc-col:last-child { border-right: none; }
+
+/* На мобильном — полная ширина */
+@media (max-width: 991px) {
+  .gkc-row { max-width: 100%; }
+}
+
+/* Navbar — убираем фиксированную ширину */
+.gkc-nav { width: 100% !important; }
+
+/* Toast — по центру снизу */
+.gkc-toast {
+  left: 50% !important;
+  transform: translateX(-50%);
+  width: auto !important;
+}
+
+/* ─── Десктоп (≥992px) ─── */
+@media (min-width: 992px) {
+  .skills-toggle-btn { display: none !important; }
+  .skills-col {
+    position: static !important;
+    transform: none !important;
+    box-shadow: none !important;
+    z-index: auto !important;
+  }
+}
+
+/* ─── Мобильный / планшет (<992px) ─── */
+@media (max-width: 991px) {
+
+  .gkc-row { min-height: auto; }
+  .gkc-col { height: auto; min-height: 0; border-right: none; border-bottom: 1px solid var(--border); }
+
+  /* Кнопка "📚 Навыки" — фиксированно сверху справа */
+  .skills-toggle-btn {
+    position: fixed;
+    top: 326px;
+    right: 8px;
+    z-index: 500;
+    background: var(--bg-card);
+    border: 1px solid var(--skill-color);
+    border-radius: var(--radius-md);
+    color: var(--skill-color);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .skills-toggle-btn:hover { background: var(--accent-glow); }
+  .skills-toggle-btn.active { background: var(--skill-color); color: #000; }
+
+  /* Колонка навыков — overlay поверх контента */
+  .skills-col {
+    position: fixed !important;
+    top: 48px;
+    right: -100%;
+    width: min(320px, 90vw) !important;
+    max-width: none !important;
+    height: calc(100vh - 48px) !important;
+    overflow-y: auto;
+    background: var(--bg-primary);
+    border-left: 1px solid var(--border);
+    z-index: 400;
+    transition: right 0.25s ease;
+    padding: 10px 8px;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.4);
+  }
+  .skills-col.open {
+    right: 0;
+  }
+
+  /* Затемнение фона когда открыт overlay */
+  .skills-overlay {
+    display: none;
+    position: fixed;
+    inset: 48px 0 0 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 399;
+  }
+  .skills-overlay.active { display: block; }
+
+  /* Компактнее на мобильном */
+  .skill-circle { width: 48px; height: 48px; }
+  .skill-tree-grid { gap: 6px 4px; }
+  .item-slot { width: 56px; height: 56px; }
+  .item-slot-sm { width: 50px !important; height: 50px !important; }
+  .char-avatar { width: 80px; height: 80px; }
+  .equip-layout { grid-template-columns: 58px auto 58px; gap: 5px; }
+}
+
+/* ─── Маленький мобильный (<480px) ─── */
+@media (max-width: 480px) {
+  .skill-circle { width: 42px; height: 42px; }
+  .item-slot { width: 50px; height: 50px; }
+  .char-avatar { width: 70px; height: 70px; }
+  .gkc-logo span { display: none; }
+}
+=== C:\Dev\gkcalc\gkcalc\templates\accounts\login.html ===
+{% extends "base.html" %}
+{% block title %}Вход — GKCalc{% endblock %}
+{% block content %}
+<div style="max-width:360px;margin:60px auto;padding:0 12px">
+  <div class="gkc-card">
+    <div class="gkc-card-title">Вход</div>
+    <form method="post" class="gkc-form">
+      {% csrf_token %}
+      <label>E-mail</label>
+      <input type="email" name="username" autofocus>
+      <label>Пароль</label>
+      <input type="password" name="password">
+      {% if form.errors %}
+        <div style="color:#ef4444;font-size:0.75rem">Неверный e-mail или пароль</div>
+      {% endif %}
+      <button type="submit" class="btn-gkc" style="width:100%">Войти</button>
+    </form>
+    <div style="margin-top:10px;font-size:0.8rem;color:var(--text-muted);text-align:center">
+      Нет аккаунта? <a href="{% url 'accounts:register' %}" style="color:var(--accent)">Регистрация</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+=== C:\Dev\gkcalc\gkcalc\templates\accounts\register.html ===
+{% extends "base.html" %}
+{% block title %}Регистрация — GKCalc{% endblock %}
+{% block content %}
+<div style="max-width:360px;margin:60px auto;padding:0 12px">
+  <div class="gkc-card">
+    <div class="gkc-card-title">Регистрация</div>
+    <form method="post" class="gkc-form">
+      {% csrf_token %}
+      {% for field in form %}
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div style="color:#ef4444;font-size:0.75rem">{{ field.errors }}</div>{% endif %}
+      {% endfor %}
+      <button type="submit" class="btn-gkc" style="width:100%">Зарегистрироваться</button>
+    </form>
+    <div style="margin-top:10px;font-size:0.8rem;color:var(--text-muted);text-align:center">
+      Уже есть аккаунт? <a href="{% url 'accounts:login' %}" style="color:var(--accent)">Войти</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+=== C:\Dev\gkcalc\gkcalc\templates\calculator\index.html ===
+{% extends "base.html" %}
+{% load static %}
+{% load calc_extras %}
+
+{% block title %}GKCalc — Калькулятор{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+{% if user.is_authenticated %}
+<div style="padding:4px 8px;background:var(--bg-secondary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+  <span style="font-size:0.75rem;color:var(--text-muted)">Слот:</span>
+  {% for d in user_dolls %}
+    <a href="?slot={{ d.slot_order }}" class="doll-tab {% if d.slot_order == active_slot %}active{% endif %}">{{ d.name }}</a>
+  {% endfor %}
+  {% if user_dolls|length < doll_slots_count %}
+    <a href="?slot={{ user_dolls|length }}" class="doll-tab">+ Новая</a>
+  {% endif %}
+  <div style="display:flex;gap:4px;">
+    <button class="btn-gkc" style="font-size:0.7rem;padding:4px 8px;" onclick="saveDoll()">💾</button>
+    <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:4px 8px;" onclick="copyShareLink()">🔗</button>
+    <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:4px 8px;" onclick="loadDoll()">📂</button>
+  </div>
+</div>
+{% endif %}
+
+<div class="gkc-container">
+  <!-- Кнопка навыков для мобильных -->
+  <button class="skills-toggle-btn d-lg-none" id="skills-toggle-btn" onclick="toggleSkillsOverlay()">📚 Навыки</button>
+<div class="row gkc-row g-0">
+
+  <!-- ЛЕВАЯ КОЛОНКА: СТАТЫ -->
+  <div class="col-lg-3 col-5 gkc-col" id="stats-col">
+
+    <div class="gkc-card">
+      <div class="gkc-card-title" style="color:var(--power-color)">⚔ Мощь</div>
+      {% for s in grouped_stats.power %}
+      <div class="stat-row">
+        <span class="stat-name">{{ s.name }}</span>
+        <span class="stat-value power" id="stat-{{ s.slug }}">
+          {{ s.value|floatformat:-2 }}{% if s.is_percent %}%{% endif %}
+        </span>
+      </div>
+      {% empty %}
+      <div style="color:var(--text-muted);font-size:0.75rem">Нет данных</div>
+      {% endfor %}
+    </div>
+
+    <div class="gkc-card">
+      <div class="gkc-card-title" style="color:var(--resist-color)">🛡 Сопротивление</div>
+      {% for s in grouped_stats.resistance %}
+      <div class="stat-row">
+        <span class="stat-name">{{ s.name }}</span>
+        <span class="stat-value resist" id="stat-{{ s.slug }}">
+          {{ s.value|floatformat:-2 }}{% if s.is_percent %}%{% endif %}
+        </span>
+      </div>
+      {% empty %}
+      <div style="color:var(--text-muted);font-size:0.75rem">Нет данных</div>
+      {% endfor %}
+    </div>
+
+    {% if active_effects %}
+    <div class="gkc-card" id="effects-block">
+    {% else %}
+    <div class="gkc-card" id="effects-block" style="display:none">
+    {% endif %}
+      <div class="gkc-card-title" style="color:#f59e0b">✨ Эффекты</div>
+      {% for eff in active_effects %}
+      <div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:2px;">{{ eff.source }}</div>
+        <div style="font-size:0.75rem;color:#f59e0b;font-weight:600;margin-bottom:2px;">{{ eff.name }}</div>
+        <div style="font-size:0.7rem;color:var(--text-secondary);line-height:1.4;">{{ eff.description }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА: ПЕРСОНАЖ -->
+  <div class="col-lg-5 col-7 gkc-col character-center">
+
+    <div class="level-badge">
+      <span style="color:var(--text-secondary);font-size:0.8rem">Ур.</span>
+      <input type="number" id="char-level" min="1" max="200"
+             value="{{ doll.character_level }}"
+             onchange="setLevel(this.value)">
+      <span style="font-size:0.75rem;color:var(--text-muted)" id="avail-pts">({{ available_points }} очков)</span>
+    </div>
+
+    <!-- Сетка обмундирования -->
+    <div class="equip-layout">
+
+      <!-- Левая колонка: основное оружие, шлем, броня -->
+      <div class="equip-col">
+        {% with slot=doll_slots|get_item:"main_weapon" %}
+        <div class="item-slot {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('main_weapon', 'Осн. оружие', {% if doll_slots|get_item:'main_weapon'  %}{% if doll_slots|get_item:'main_weapon'  %}{% with s=doll_slots|get_item:'main_weapon' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Осн. оружие">
+          {% with slot_obj=doll_slots|get_item:"main_weapon" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Осн. оружие</span>{% else %}<div class="item-slot-name">Осн. оружие</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+        {% with slot=doll_slots|get_item:"helmet" %}
+        <div class="item-slot {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('helmet', 'Шлем', {% if doll_slots|get_item:'helmet'  %}{% if doll_slots|get_item:'helmet'  %}{% with s=doll_slots|get_item:'helmet' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Шлем">
+          {% with slot_obj=doll_slots|get_item:"helmet" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Шлем</span>{% else %}<div class="item-slot-name">Шлем</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+        {% with slot=doll_slots|get_item:"armor" %}
+        <div class="item-slot {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('armor', 'Броня', {% if doll_slots|get_item:'armor'  %}{% if doll_slots|get_item:'armor'  %}{% with s=doll_slots|get_item:'armor' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Броня">
+          {% with slot_obj=doll_slots|get_item:"armor" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Броня</span>{% else %}<div class="item-slot-name">Броня</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+      </div>
+
+      <!-- Персонаж в центре -->
+      <div class="char-figure">
+      <div class="char-avatar">
+        <img src="{% static 'images/character.png' %}" alt="Персонаж" style="width:100%;height:100%;object-fit:contain;">
+      </div>
+        
+      </div>
+
+      <!-- Правая колонка: доп.оружие, усилитель, [дух + аксессуар] -->
+      <div class="equip-col">
+        {% with slot=doll_slots|get_item:"off_weapon" %}
+        <div class="item-slot {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('off_weapon', 'Доп. оружие', {% if doll_slots|get_item:'off_weapon'  %}{% if doll_slots|get_item:'off_weapon'  %}{% with s=doll_slots|get_item:'off_weapon' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Доп. оружие">
+          {% with slot_obj=doll_slots|get_item:"off_weapon" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Доп. оружие</span>{% else %}<div class="item-slot-name">Доп. оружие</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+        {% with slot=doll_slots|get_item:"amplifier" %}
+        <div class="item-slot {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('amplifier', 'Усилитель', {% if doll_slots|get_item:'amplifier'  %}{% if doll_slots|get_item:'amplifier'  %}{% with s=doll_slots|get_item:'amplifier' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Усилитель">
+          {% with slot_obj=doll_slots|get_item:"amplifier" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Усилитель</span>{% else %}<div class="item-slot-name">Усилитель</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+        <!-- Нижний ряд: дух-хранитель + аксессуар -->
+        <div class="equip-bottom-row">
+        {% with slot=doll_slots|get_item:"guardian" %}
+        <div class="item-slot item-slot-sm {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('guardian', 'Дух', {% if doll_slots|get_item:'guardian'  %}{% if doll_slots|get_item:'guardian'  %}{% with s=doll_slots|get_item:'guardian' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Дух">
+          {% with slot_obj=doll_slots|get_item:"guardian" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Дух</span>{% else %}<div class="item-slot-name">Дух</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+        {% with slot=doll_slots|get_item:"accessory" %}
+        <div class="item-slot {% if slot.item %}has-item{% endif %}"
+             onclick="openSlotModal('accessory', 'Аксессуар', {% if doll_slots|get_item:'accessory'  %}{% if doll_slots|get_item:'accessory'  %}{% with s=doll_slots|get_item:'accessory' %}{{ s.item|yesno:'true,false' }}{% endwith %}{% else %}false{% endif %}{% else %}false{% endif %})"
+             title="Аксессуар">
+          {% with slot_obj=doll_slots|get_item:"accessory" %}{% if slot_obj.item %}<img src="{% if slot_obj.item.image and slot_obj.item.image.name %}{{ slot_obj.item.image.url }}{% endif %}" alt="{{ slot_obj.item.name }}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span class="item-slot-name" style="display:none;">Аксессуар</span>{% else %}<div class="item-slot-name">Аксессуар</div>{% endif %}{% endwith %}
+        </div>
+        {% endwith %}
+        </div>
+      </div>
+
+    </div>
+
+      <div style="text-align:center;margin:0px 0;">
+        <div style="font-family:var(--font-display);font-size:0.9rem;color:var(--accent);">{{ doll.name }}</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);">Уровень {{ doll.character_level }}</div>
+      </div>
+      
+    <input type="hidden" id="doll-id" value="{{ doll.pk }}">
+    <input type="hidden" id="doll-uuid" value="{{ doll.uuid }}">
+
+    <!-- Аккордеон сетов и предметов -->
+    <div id="sets-accordion" style="width:100%;margin-top:10px;max-height:320px;overflow-y:auto;">
+    </div>
+
+  </div>
+
+  <!-- ПРАВАЯ КОЛОНКА: НАВЫКИ -->
+  <div class="col-lg-4 gkc-col skills-col" id="skills-col">
+    <div class="gkc-card">
+      <div class="gkc-card-title" style="color:var(--skill-color);display:flex;align-items:center;gap:8px;">
+        <span>📚 Дерево навыков</span>
+        <button class="btn-gkc btn-gkc-outline" style="font-size:0.65rem;padding:3px 8px;" onclick="resetSkills()">↺ Сброс</button>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:0.68rem;color:var(--text-muted)">ПКМ = откатить очко</span>
+        <span style="font-size:0.75rem;font-weight:600;"
+              id="avail-pts-skill"
+              class="{% if is_over_budget %}over-budget{% endif %}"
+              title="{% if is_over_budget %}Потрачено больше очков чем доступно по уровню. Нажмите Сброс.{% endif %}">
+          {% if is_over_budget %}⚠ перебор!{% else %}{{ available_points }} очков{% endif %}
+        </span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;margin-bottom:6px;">
+      </div>
+
+      <div class="skill-tree-wrap" id="skill-tree-wrap">
+        <svg id="skill-svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;"></svg>
+        <div class="skill-tree-grid">
+          {% regroup skill_nodes by order as skill_rows %}
+          {% for row in skill_rows %}
+            {% for node in row.list %}
+            {% with invested=invested_map|get_item:node.pk|default:0 %}
+            <div class="skill-node-wrap">
+              <div class="skill-circle {% if invested > 0 and invested >= node.max_points %}skill-complete{% elif invested > 0 %}skill-active{% endif %}"
+                   id="skill-node-{{ node.pk }}"
+                   data-node-id="{{ node.pk }}"
+                   data-max-points="{{ node.max_points }}"
+                   data-invested="{{ invested }}"
+                   onclick="clickSkill(event, {{ node.pk }}, {{ node.max_points }}, 'add')"
+                   oncontextmenu="clickSkill(event, {{ node.pk }}, {{ node.max_points }}, 'remove')"
+                   title="{{ node.name }}{% if node.description %}: {{ node.description }}{% endif %}">
+                <div class="skill-circle-dots" id="skill-dots-{{ node.pk }}">
+                  {% for i in "123" %}{% if forloop.counter <= node.max_points %}
+                  <div class="skill-cdot {% if invested >= forloop.counter %}filled{% endif %}"
+                       id="skill-dot-{{ node.pk }}-{{ forloop.counter }}"></div>
+                  {% endif %}{% endfor %}
+                </div>
+              </div>
+              <div class="skill-circle-label">{{ node.name|truncatechars:12 }}</div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <script id="skill-edges-data" type="application/json">
+        [{% for edge in skill_edges %}{"from":{{ edge.from_node.pk }},"to":{{ edge.to_node.pk }}}{% if not forloop.last %},{% endif %}{% endfor %}]
+      </script>
+
+    </div>
+  </div>
+</div>
+</div><!-- /row -->
+</div><!-- /gkc-container -->
+
+
+
+<!-- Overlay навыков для мобильных -->
+<div class="skills-overlay d-lg-none" id="skills-overlay" onclick="closeSkillsOverlay(event)"></div>
+
+<!-- КУКЛА СРАВНЕНИЯ — только десктоп, правая половина экрана -->
+<div class="d-none d-lg-flex" id="comparison-wrapper"
+     style="position:fixed;top:48px;right:0;width:50vw;height:calc(100vh - 48px);
+            flex-direction:column;pointer-events:none;">
+
+  <!-- Кнопка раскрытия -->
+  <button id="comp-toggle-btn" onclick="toggleComparison()"
+          style="pointer-events:all;position:absolute;left:-20px;top:50%;
+                 transform:translateY(-50%);background:var(--bg-card);
+                 border:1px solid var(--border-bright);border-radius:6px 0 0 6px;
+                 color:var(--text-secondary);font-size:0.65rem;writing-mode:vertical-rl;
+                 padding:10px 5px;cursor:pointer;z-index:100;letter-spacing:1px;
+                 transition:all 0.2s;">⚖ СРАВНИТЬ</button>
+
+  <!-- Содержимое куклы сравнения -->
+  <div id="comp-doll" style="display:none;pointer-events:all;width:100%;height:100%;
+                              background:var(--bg-primary);border-left:2px solid var(--border-bright);
+                              overflow:hidden;">
+    <div class="row g-0" style="height:100%;">
+
+      <!-- Левая: статы -->
+      <div class="col-3 gkc-col" id="comp-stats-col">
+        <div class="gkc-card">
+          <div class="gkc-card-title" style="color:var(--power-color)">⚔ Мощь</div>
+          <div id="comp-power-stats"></div>
+        </div>
+        <div class="gkc-card" style="margin-top:6px;">
+          <div class="gkc-card-title" style="color:var(--resist-color)">🛡 Сопротивление</div>
+          <div id="comp-resist-stats"></div>
+        </div>
+        <div class="gkc-card" id="comp-effects-block" style="display:none;margin-top:6px;">
+          <div class="gkc-card-title" style="color:#f59e0b">✨ Эффекты</div>
+          <div id="comp-effects-content"></div>
+        </div>
+      </div>
+
+      <!-- Центр: персонаж -->
+      <div class="col-5 gkc-col character-center">
+        <div class="level-badge">
+          <span style="color:var(--text-secondary);font-size:0.8rem">Ур.</span>
+          <input type="number" id="comp-level" min="1" max="200" value="1"
+                 onchange="compSetLevel(this.value)"
+                 style="width:48px;background:transparent;border:none;color:var(--accent);
+                        font-family:var(--font-display);font-size:1.1rem;font-weight:700;
+                        text-align:center;outline:none;">
+          <span style="font-size:0.75rem;color:var(--text-muted)" id="comp-avail-pts">(0 очков)</span>
+        </div>
+
+        <div class="equip-layout">
+          <div class="equip-col">
+            {% for st, label in slot_types %}{% if forloop.counter <= 3 %}
+            <div class="item-slot" id="comp-slot-{{ st }}"
+                 onclick="compOpenSlot('{{ st }}', '{{ label }}')" title="{{ label }}">
+              <div class="item-slot-name" id="comp-slot-label-{{ st }}">{{ label }}</div>
+            </div>
+            {% endif %}{% endfor %}
+          </div>
+          <div class="char-figure">
+            <div class="char-avatar">
+              <img src="{% static 'images/character.png' %}" alt="Персонаж"
+                   style="width:100%;height:100%;object-fit:contain;">
+            </div>
+            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Сравнение</div>
+          </div>
+          <div class="equip-col">
+            {% for st, label in slot_types %}{% if forloop.counter > 3 and st != 'guardian' and st != 'accessory' %}
+            <div class="item-slot" id="comp-slot-{{ st }}"
+                 onclick="compOpenSlot('{{ st }}', '{{ label }}')" title="{{ label }}">
+              <div class="item-slot-name" id="comp-slot-label-{{ st }}">{{ label }}</div>
+            </div>
+            {% endif %}{% endfor %}
+            <div class="equip-bottom-row">
+              <div class="item-slot item-slot-sm" id="comp-slot-guardian"
+                   onclick="compOpenSlot('guardian','Дух')" title="Дух">
+                <div class="item-slot-name" id="comp-slot-label-guardian">Дух</div>
+              </div>
+              <div class="item-slot" id="comp-slot-accessory"
+                   onclick="compOpenSlot('accessory','Аксессуар')" title="Аксессуар">
+                <div class="item-slot-name" id="comp-slot-label-accessory">Аксессуар</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="comp-sets-accordion"
+             style="width:100%;margin-top:8px;max-height:200px;overflow-y:auto;"></div>
+
+        <input type="hidden" id="comp-doll-id" value="">
+      </div>
+
+      <!-- Правая: навыки -->
+      <div class="col-4 gkc-col">
+        <div class="gkc-card">
+          <div class="gkc-card-title" style="color:var(--skill-color);display:flex;justify-content:space-between;">
+            <span>📚 Навыки</span>
+            <button class="btn-gkc btn-gkc-outline" style="font-size:0.6rem;padding:2px 6px;"
+                    onclick="compResetSkills()">↺</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:0.65rem;color:var(--text-muted)">ПКМ = откат</span>
+            <span style="font-size:0.72rem;color:var(--skill-color);font-weight:600;"
+                  id="comp-avail-pts-skill">0 очков</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 4px;position:relative;" id="comp-skill-grid">
+            <svg id="comp-skill-svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;"></svg>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Модалка куклы сравнения -->
+<div id="comp-modal" class="gkc-modal-backdrop" style="display:none;" onclick="compCloseModal(event)">
+  <div class="gkc-modal" onclick="event.stopPropagation()">
+
+    <div id="comp-modal-select-view">
+      <div class="gkc-modal-title" id="comp-modal-title">Выбор предмета</div>
+      <div class="gkc-form">
+        <label>Предмет</label>
+        <select id="comp-modal-item-select"><option value="">— пусто —</option></select>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <button class="btn-gkc" onclick="compApplyItem()">Надеть</button>
+          <button class="btn-gkc btn-gkc-outline" onclick="compApplyItem(true)">Снять</button>
+          <button class="btn-gkc btn-gkc-outline" onclick="compCloseModal()">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="comp-modal-edit-view" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div>
+          <div class="gkc-modal-title" id="comp-modal-item-name"></div>
+          <div id="comp-modal-item-rarity" style="font-size:0.7rem;"></div>
+        </div>
+        <div style="display:flex;gap:5px;">
+          <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:3px 8px;"
+                  onclick="compSwitchToSelect()">Сменить ▾</button>
+          <button class="btn-gkc btn-gkc-outline"
+                  style="font-size:0.7rem;padding:3px 8px;color:#ef4444;border-color:#ef4444;"
+                  onclick="compApplyItem(true)">Снять</button>
+        </div>
+      </div>
+      <div id="comp-modal-stats-list" class="gkc-form"></div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <button class="btn-gkc" onclick="compSaveStats()">Сохранить</button>
+        <button class="btn-gkc btn-gkc-outline" onclick="compCloseModal()">Отмена</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Модальное окно предмета -->
+<div id="slot-modal" class="gkc-modal-backdrop" style="display:none;" onclick="closeModal(event)">
+  <div class="gkc-modal" onclick="event.stopPropagation()" style="min-width:340px;max-width:460px;">
+
+    <!-- Режим выбора предмета -->
+    <div id="modal-select-view">
+      <div class="gkc-modal-title" id="modal-title">Выбор предмета</div>
+      <div class="gkc-form">
+        <label>Предмет</label>
+        <select id="modal-item-select">
+          <option value="">— пусто —</option>
+        </select>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <button class="btn-gkc" onclick="applyItemSelect()">Надеть</button>
+          <button class="btn-gkc btn-gkc-outline" onclick="applyItemSelect(true)">Снять</button>
+          <button class="btn-gkc btn-gkc-outline" onclick="closeModal()">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Режим редактирования статов -->
+    <div id="modal-edit-view" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div>
+          <div class="gkc-modal-title" id="modal-item-name" style="margin-bottom:2px;"></div>
+          <div id="modal-item-rarity" style="font-size:0.7rem;"></div>
+        </div>
+        <div style="display:flex;gap:5px;">
+          <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:3px 8px;"
+                  onclick="switchToSelectView()">Сменить ▾</button>
+          <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:3px 8px;color:#ef4444;border-color:#ef4444;"
+                  onclick="applyItemSelect(true)">Снять</button>
+        </div>
+      </div>
+      <div id="modal-stats-list" class="gkc-form"></div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <button class="btn-gkc" onclick="saveSlotStats()">Сохранить</button>
+        <button class="btn-gkc btn-gkc-outline" onclick="closeModal()">Отмена</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const ITEMS_BY_SLOT = {{ items_by_slot|safe }};
+const ALL_STATS = {{ all_stats|safe }};
+const SETS_BY_RARITY = {{ sets_by_rarity|safe }};
+const NO_SET_ITEMS = {{ no_set_items|safe }};
+const GUARDIAN_SLOT = 'guardian';
+const DOLL_ID = document.getElementById('doll-id').value;
+const DOLL_UUID = document.getElementById('doll-uuid').value;
+let activeSlotType = null;
+
+// Хранилище текущего состояния навыков в JS — не зависим от DOM-текста
+const skillState = {};
+{% regroup skill_nodes by order as skill_rows_js %}
+{% for row in skill_rows_js %}{% for node in row.list %}
+{% with invested=invested_map|get_item:node.pk|default:0 %}
+skillState[{{ node.pk }}] = { invested: {{ invested }}, max: {{ node.max_points }} };
+{% endwith %}{% endfor %}{% endfor %}
+
+// ─── Мобильный overlay навыков ───
+function toggleSkillsOverlay() {
+  const col = document.getElementById('skills-col');
+  const overlay = document.getElementById('skills-overlay');
+  const btn = document.getElementById('skills-toggle-btn');
+  const isOpen = col.classList.contains('open');
+  col.classList.toggle('open', !isOpen);
+  overlay.classList.toggle('active', !isOpen);
+  btn.classList.toggle('active', !isOpen);
+}
+
+function closeSkillsOverlay(e) {
+  if (e && e.target !== document.getElementById('skills-overlay')) return;
+  const col = document.getElementById('skills-col');
+  const overlay = document.getElementById('skills-overlay');
+  const btn = document.getElementById('skills-toggle-btn');
+  col.classList.remove('open');
+  overlay.classList.remove('active');
+  btn.classList.remove('active');
+}
+
+// ─── Определяем мобильный режим ───
+function isMobile() { return window.innerWidth < 992; }
+
+// ─── Навыки: клик с учётом мобильного (цикличный тап) ───
+async function clickSkill(event, nodeId, maxPoints, action) {
+  event.preventDefault();
+  const current = skillState[nodeId] ? skillState[nodeId].invested : 0;
+
+  // На мобильном — Вариант Б: заполнен → сброс до 0, иначе добавляем по одному
+  let actualAction = action;
+  if (isMobile()) {
+    if (current <= 0) {
+      actualAction = 'add';
+    } else if (current >= maxPoints) {
+      actualAction = 'reset';  // сбрасываем до 0
+    } else {
+      actualAction = 'add';
+    }
+  } else {
+    if (action === 'add' && current >= maxPoints) return;
+    if (action === 'remove' && current <= 0) return;
+  }
+
+  // Для сброса до 0 — отправляем remove несколько раз через рекурсию
+  if (actualAction === 'reset') {
+    let cur = current;
+    while (cur > 0) {
+      const res = await gkcPost("{% url 'calculator:api_update_skill' %}", {
+        doll_id: DOLL_ID, node_id: nodeId, action: 'remove',
+      });
+      if (!res.ok) { showToast(res.error || 'Ошибка'); break; }
+      cur = res.invested;
+      if (cur === 0) {
+        skillState[nodeId].invested = 0;
+        updateSkillNode(nodeId, 0, maxPoints);
+        const pts = res.available_points;
+        const el1 = document.getElementById('avail-pts');
+        const el2 = document.getElementById('avail-pts-skill');
+        if (el1) el1.textContent = '(' + pts + ' очков)';
+        if (el2) el2.textContent = pts + ' очков';
+        updateStatsDisplay(res.stats);
+      }
+    }
+    return;
+  }
+
+  const res = await gkcPost("{% url 'calculator:api_update_skill' %}", {
+    doll_id: DOLL_ID, node_id: nodeId, action: actualAction,
+  });
+
+  if (res.ok) {
+    skillState[nodeId].invested = res.invested;
+    updateSkillNode(nodeId, res.invested, maxPoints);
+    const pts = res.available_points;
+    const el1 = document.getElementById('avail-pts');
+    const el2 = document.getElementById('avail-pts-skill');
+    if (el1) el1.textContent = '(' + pts + ' очков)';
+    if (el2) el2.textContent = pts + ' очков';
+    updateStatsDisplay(res.stats);
+  } else {
+    showToast(res.error || 'Ошибка', 2500);
+  }
+}
+
+function updateSkillNode(nodeId, invested, maxPoints) {
+  const el = document.getElementById('skill-node-' + nodeId);
+  if (!el) return;
+  el.dataset.invested = invested;
+  // Цвет: пустой=серый, частично=зелёный, полный=фиолетовый
+  el.className = 'skill-circle' +
+    (invested > 0 && invested >= maxPoints ? ' skill-complete' :
+     invested > 0 ? ' skill-active' : '');
+  for (let i = 1; i <= maxPoints; i++) {
+    const dot = document.getElementById('skill-dot-' + nodeId + '-' + i);
+    if (dot) dot.classList.toggle('filled', i <= invested);
+  }
+}
+
+// Рисуем SVG линии связей между узлами
+function drawSkillEdges() {
+  const wrap = document.getElementById('skill-tree-wrap');
+  const svg  = document.getElementById('skill-svg');
+  if (!wrap || !svg) return;
+  const edges = JSON.parse(document.getElementById('skill-edges-data').textContent);
+  const wrapRect = wrap.getBoundingClientRect();
+  svg.innerHTML = '';
+  edges.forEach(edge => {
+    const from = document.getElementById('skill-node-' + edge.from);
+    const to   = document.getElementById('skill-node-' + edge.to);
+    if (!from || !to) return;
+    const fr = from.getBoundingClientRect();
+    const tr = to.getBoundingClientRect();
+    const x1 = fr.left + fr.width/2  - wrapRect.left;
+    const y1 = fr.top  + fr.height/2 - wrapRect.top;
+    const x2 = tr.left + tr.width/2  - wrapRect.left;
+    const y2 = tr.top  + tr.height/2 - wrapRect.top;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('stroke', 'var(--border-bright)');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('stroke-dasharray', 'none');
+    svg.appendChild(line);
+  });
+}
+window.addEventListener('resize', drawSkillEdges);
+
+// ─── Цвета редкости ───
+const RARITY_COLORS = {
+  common:    '#6b7280',
+  uncommon:  '#22c55e',
+  rare:      '#3b82f6',
+  epic:      '#a855f7',
+  crafted:   '#1e3a5f',
+  limited:   '#06b6d4',
+  legendary: '#f59e0b',
+};
+const RARITY_NAMES = {
+  common:'Common', uncommon:'Uncommon', rare:'Rare',
+  epic:'Epic', crafted:'Crafted', limited:'Limited', legendary:'Legendary'
+};
+
+// ─── Слоты предметов ───
+// Состояние слотов — обновляется при надевании/снятии
+const slotState = {};
+{% for st, label in slot_types %}
+{% with slot=doll_slots|get_item:st %}
+slotState['{{ st }}'] = { hasItem: {% if slot.item %}true{% else %}false{% endif %}, label: '{{ label }}' };
+{% endwith %}
+{% endfor %}
+
+async function openSlotModal(slotType, label, hasItem) {
+  activeSlotType = slotType;
+  // Читаем актуальное состояние из slotState, а не из параметра шаблона
+  const actualHasItem = slotState[slotType] ? slotState[slotType].hasItem : hasItem;
+  document.getElementById('slot-modal').style.display = 'flex';
+
+  if (actualHasItem) {
+    switchToEditView();
+    const res = await gkcPost("{% url 'calculator:api_get_slot_stats' %}", {
+      doll_id: DOLL_ID, slot_type: slotType,
+    });
+    if (res.ok) renderEditView(res);
+  } else {
+    switchToSelectView(label);
+  }
+}
+
+function switchToSelectView(label) {
+  document.getElementById('modal-select-view').style.display = 'block';
+  document.getElementById('modal-edit-view').style.display = 'none';
+  if (label) document.getElementById('modal-title').textContent = label;
+  const sel = document.getElementById('modal-item-select');
+  sel.innerHTML = '<option value="">— пусто —</option>';
+  (ITEMS_BY_SLOT[activeSlotType] || []).forEach(it => {
+    const opt = document.createElement('option');
+    opt.value = it.id;
+    opt.textContent = it.name;
+    sel.appendChild(opt);
+  });
+}
+
+function switchToEditView() {
+  document.getElementById('modal-select-view').style.display = 'none';
+  document.getElementById('modal-edit-view').style.display = 'block';
+}
+
+function renderEditView(res) {
+  document.getElementById('modal-item-name').textContent = res.item_name;
+  const rarityEl = document.getElementById('modal-item-rarity');
+  rarityEl.textContent = RARITY_NAMES[res.item_rarity] || '';
+  rarityEl.style.color = RARITY_COLORS[res.item_rarity] || '#fff';
+
+  const list = document.getElementById('modal-stats-list');
+  list.innerHTML = '';
+
+  // Текущие статы
+  res.slot_stats.forEach(s => {
+    list.appendChild(buildStatRow(s.stat_id, s.stat_name, s.is_percent, s.custom_value, s.base_value, s.diff_pct));
+  });
+
+  // Для духа-хранителя — кнопка добавления стата
+  if (activeSlotType === GUARDIAN_SLOT) {
+    const addRow = document.createElement('div');
+    addRow.id = 'guardian-add-row';
+    addRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);';
+
+    // Список уже добавленных stat_id
+    const existingIds = new Set(res.slot_stats.map(s => s.stat_id));
+    const available = ALL_STATS.filter(s => !existingIds.has(s.id));
+
+    if (available.length > 0) {
+      addRow.innerHTML = `
+        <select id="guardian-stat-select" style="flex:1;background:var(--bg-secondary);border:1px solid var(--border);
+                border-radius:4px;color:var(--text-primary);padding:4px 6px;font-size:0.78rem;">
+          <option value="">— выбрать стат —</option>
+          ${available.map(s => `<option value="${s.id}" data-percent="${s.is_percent}">${s.name_ru}</option>`).join('')}
+        </select>
+        <input type="number" id="guardian-stat-value" min="0" step="0.01" placeholder="0"
+               style="width:70px;background:var(--bg-secondary);border:1px solid var(--border);
+                      border-radius:4px;color:var(--text-primary);padding:4px 6px;font-size:0.78rem;">
+        <button class="btn-gkc" style="font-size:0.7rem;padding:4px 8px;" onclick="addGuardianStat()">+</button>`;
+    } else {
+      addRow.innerHTML = '<span style="font-size:0.72rem;color:var(--text-muted);">Все статы добавлены</span>';
+    }
+    list.appendChild(addRow);
+  }
+}
+
+function buildStatRow(statId, statName, isPercent, customValue, baseValue, diffPct) {
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:6px;';
+  div.dataset.statId = statId;
+
+  let diffHtml = '';
+  if (diffPct !== null && diffPct !== undefined && diffPct !== 0) {
+    const color = diffPct > 0 ? '#22c55e' : '#ef4444';
+    const sign = diffPct > 0 ? '+' : '';
+    diffHtml = `<span style="color:${color};font-size:0.7rem;margin-left:4px;">${sign}${diffPct}%</span>`;
+  }
+  const suffix = isPercent ? '%' : '';
+  div.innerHTML = `
+    <label style="flex:1;font-size:0.78rem;color:var(--text-secondary);">${statName}${diffHtml}</label>
+    <input type="number" min="0" step="0.01"
+           value="${customValue}"
+           data-stat-id="${statId}"
+           data-base="${baseValue ?? customValue}"
+           style="width:80px;background:var(--bg-secondary);border:1px solid var(--border);
+                  border-radius:4px;color:var(--text-primary);padding:3px 6px;font-size:0.8rem;"
+           oninput="updateDiffLabel(this)">
+    <span style="font-size:0.7rem;color:var(--text-muted);min-width:14px;">${suffix}</span>`;
+  return div;
+}
+
+function addGuardianStat() {
+  const sel = document.getElementById('guardian-stat-select');
+  const valInput = document.getElementById('guardian-stat-value');
+  const statId = parseInt(sel.value);
+  const value = parseFloat(valInput.value) || 0;
+  if (!statId) { showToast('Выберите стат'); return; }
+
+  const statName = sel.options[sel.selectedIndex].text;
+  const isPct = sel.options[sel.selectedIndex].dataset.percent === 'True';
+
+  // Добавляем строку в список
+  const list = document.getElementById('modal-stats-list');
+  const addRow = document.getElementById('guardian-add-row');
+  list.insertBefore(buildStatRow(statId, statName, isPct, value, 0, null), addRow);
+
+  // Убираем добавленный стат из селекта
+  sel.options[sel.selectedIndex].remove();
+  valInput.value = '';
+  if (sel.options.length <= 1) {
+    addRow.innerHTML = '<span style="font-size:0.72rem;color:var(--text-muted);">Все статы добавлены</span>';
+  }
+}
+
+function updateDiffLabel(input) {
+  const base = parseFloat(input.dataset.base);
+  const val = parseFloat(input.value) || 0;
+  const label = input.parentElement.querySelector('label');
+  const statName = label.textContent.split('(')[0].trim();
+  if (base !== 0) {
+    const pct = Math.round((val - base) / base * 1000) / 10;
+    if (pct !== 0) {
+      const color = pct > 0 ? '#22c55e' : '#ef4444';
+      const sign = pct > 0 ? '+' : '';
+      label.innerHTML = `${statName} <span style="color:${color};font-size:0.7rem;">${sign}${pct}%</span>`;
+    } else {
+      label.textContent = statName;
+    }
+  }
+}
+
+function updateSlotDOM(slotType, itemName, rarity, imageUrl) {
+  // Ищем только среди слотов основной куклы (не куклы сравнения)
+  const slots = document.querySelectorAll('.equip-layout .item-slot');
+  let slotEl = null;
+  slots.forEach(el => {
+    if (!el.id.startsWith('comp-') &&
+        el.getAttribute('onclick') &&
+        el.getAttribute('onclick').includes(`'${slotType}'`)) {
+      slotEl = el;
+    }
+  });
+  if (!slotEl) return;
+
+  // Обновляем рамку по редкости
+  slotEl.style.borderColor = RARITY_COLORS[rarity] || 'var(--border)';
+  if (rarity === 'legendary') {
+    slotEl.style.background = 'rgba(245,158,11,0.08)';
+  } else {
+    slotEl.style.background = '';
+  }
+
+  // Обновляем содержимое
+  const nameEl = slotEl.querySelector('.item-slot-name');
+  const imgEl = slotEl.querySelector('img');
+
+  if (imageUrl) {
+    if (imgEl) {
+      imgEl.src = imageUrl;
+      imgEl.style.display = '';
+      if (nameEl) nameEl.style.display = 'none';
+    } else {
+      slotEl.innerHTML = `<img src="${imageUrl}" alt="${itemName}"
+        style="width:80%;height:80%;object-fit:contain;"
+        onerror="this.style.display='none'">`;
+    }
+  } else {
+    if (imgEl) imgEl.style.display = 'none';
+    if (nameEl) {
+      nameEl.style.display = '';
+      nameEl.textContent = itemName || '';
+    }
+  }
+  slotEl.classList.add('has-item');
+}
+
+function clearSlotDOM(slotType, defaultLabel) {
+  const slots = document.querySelectorAll('.item-slot');
+  slots.forEach(el => {
+    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(`'${slotType}'`)) {
+      el.style.borderColor = '';
+      el.style.background = '';
+      el.classList.remove('has-item');
+      const imgEl = el.querySelector('img');
+      if (imgEl) imgEl.style.display = 'none';
+      const nameEl = el.querySelector('.item-slot-name');
+      if (nameEl) {
+        nameEl.style.display = '';
+        nameEl.textContent = defaultLabel || slotType;
+      }
+    }
+  });
+}
+
+function updateEffectsDisplay(effects) {
+  const effBlock = document.getElementById('effects-block');
+  if (!effBlock) return;
+
+  if (!effects || effects.length === 0) {
+    effBlock.style.display = 'none';
+    return;
+  }
+
+  effBlock.style.display = '';
+  let html = '<div class="gkc-card-title" style="color:#f59e0b">✨ Эффекты</div>';
+  effects.forEach((eff, i) => {
+    const border = i < effects.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
+    html += `
+      <div style="margin-bottom:8px;padding-bottom:8px;${border}">
+        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:2px;">${eff.source}</div>
+        <div style="font-size:0.75rem;color:#f59e0b;font-weight:600;margin-bottom:2px;">${eff.name}</div>
+        <div style="font-size:0.7rem;color:var(--text-secondary);line-height:1.4;">${eff.description}</div>
+      </div>`;
+  });
+  effBlock.innerHTML = html;
+}
+
+async function applyItemSelect(remove) {
+  const itemId = remove ? null : document.getElementById('modal-item-select').value;
+  const res = await gkcPost("{% url 'calculator:api_select_item' %}", {
+    doll_id: DOLL_ID, slot_type: activeSlotType, item_id: itemId || null,
+  });
+  if (res.ok) {
+    updateStatsDisplay(res.stats);
+    updateEffectsDisplay(res.effects);
+    if (remove) {
+      slotState[activeSlotType] = { hasItem: false, label: slotState[activeSlotType]?.label };
+      clearSlotDOM(activeSlotType, document.getElementById('modal-title').textContent);
+      closeModal();
+    } else if (itemId && res.slot_stats && res.slot_stats.length) {
+      slotState[activeSlotType] = { hasItem: true, label: slotState[activeSlotType]?.label };
+      updateSlotDOM(activeSlotType, res.item_name, res.item_rarity, res.image_url);
+      switchToEditView();
+      renderEditView(res);
+    } else {
+      closeModal();
+    }
+    showToast(remove ? 'Предмет снят' : 'Предмет надет');
+  }
+}
+
+async function saveSlotStats() {
+  const list = document.getElementById('modal-stats-list');
+  const inputs = list ? list.querySelectorAll('input[data-stat-id]') : [];
+  const stats = {};
+  inputs.forEach(inp => { stats[inp.dataset.statId] = parseFloat(inp.value) || 0; });
+  const res = await gkcPost("{% url 'calculator:api_save_slot_stats' %}", {
+    doll_id: DOLL_ID, slot_type: activeSlotType, stats,
+  });
+  if (res.ok) {
+    updateStatsDisplay(res.stats);
+    updateEffectsDisplay(res.effects);
+    showToast('Статы сохранены');
+    closeModal();
+  }
+}
+
+// ─── Аккордеон сетов ───
+const SLOT_LABELS = {
+  main_weapon:'Осн. оружие', helmet:'Шлем', armor:'Броня',
+  off_weapon:'Доп. оружие', amplifier:'Усилитель',
+  accessory:'Аксессуар', guardian:'Дух'
+};
+
+
+function buildItemChip(item, onclickFn) {
+  const color = RARITY_COLORS[item.rarity] || 'var(--border)';
+  const inner = item.image_url
+    ? `<img src="${item.image_url}" alt="${item.name}"
+            style="width:100%;height:100%;object-fit:contain;"
+            onerror="this.style.display='none';this.parentElement.querySelector('.chip-label').style.display='block'"
+            title="${item.name}">
+       <span class="chip-label" style="display:none;font-size:0.6rem;text-align:center;padding:2px;">${item.name}</span>`
+    : `<span style="font-size:0.6rem;text-align:center;padding:2px;color:var(--text-secondary);">${item.name}</span>`;
+  return `<div onclick="${onclickFn}"
+               title="${item.name} (${SLOT_LABELS[item.slot_type]||item.slot_type})"
+               style="display:inline-flex;align-items:center;justify-content:center;
+                      width:48px;height:48px;background:var(--bg-card);
+                      border:2px solid ${color};border-radius:6px;
+                      cursor:pointer;margin:2px;overflow:hidden;
+                      transition:transform 0.15s,box-shadow 0.15s;"
+               onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 0 8px ${color}'"
+               onmouseout="this.style.transform='';this.style.boxShadow=''">
+            ${inner}
+          </div>`;
+}
+
+function buildAccordion() {
+  const acc = document.getElementById('sets-accordion');
+  if (!acc) return;
+  acc.innerHTML = '';
+
+  // Сеты по редкостям
+  SETS_BY_RARITY.forEach(group => {
+    acc.appendChild(buildAccordionSection(
+      group.label, group.rarity, group.sets, false
+    ));
+  });
+
+  // Без сета
+  if (NO_SET_ITEMS.length > 0) {
+    acc.appendChild(buildNoSetSection());
+  }
+}
+
+function buildAccordionSection(label, rarity, sets, open) {
+  const color = RARITY_COLORS[rarity] || 'var(--text-secondary)';
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'border:1px solid var(--border);border-radius:6px;margin-bottom:4px;overflow:hidden;';
+
+  const header = document.createElement('div');
+  header.style.cssText = `display:flex;justify-content:space-between;align-items:center;
+    padding:6px 10px;cursor:pointer;background:var(--bg-card);user-select:none;`;
+  header.innerHTML = `<span style="font-size:0.78rem;font-weight:600;color:${color};">${label}</span>
+    <span style="font-size:0.7rem;color:var(--text-muted);" class="acc-arrow">${open ? '▲' : '▼'}</span>`;
+
+  const body = document.createElement('div');
+  body.style.cssText = `display:${open ? 'block' : 'none'};background:var(--bg-secondary);padding:6px 8px;`;
+
+  sets.forEach(set => {
+    const setDiv = document.createElement('div');
+    setDiv.style.cssText = 'margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);';
+    let itemsHtml = set.items.map(it =>
+      buildItemChip(it, `equipSingleItem(${it.id}, '${it.slot_type}')`)
+    ).join('');
+    setDiv.innerHTML = `
+      <div style="font-size:0.75rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;">${set.name}</div>
+      <div style="margin-bottom:5px;">${itemsHtml}</div>
+      <button class="btn-gkc" style="font-size:0.65rem;padding:3px 8px;"
+              onclick="equipSet(${set.id})">⚔ Надеть сет</button>`;
+    body.appendChild(setDiv);
+  });
+
+  header.onclick = () => {
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    header.querySelector('.acc-arrow').textContent = isOpen ? '▼' : '▲';
+  };
+
+  wrap.appendChild(header);
+  wrap.appendChild(body);
+  return wrap;
+}
+
+function buildNoSetSection() {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'border:1px solid var(--border);border-radius:6px;margin-bottom:4px;overflow:hidden;';
+
+  const header = document.createElement('div');
+  header.style.cssText = `display:flex;justify-content:space-between;align-items:center;
+    padding:6px 10px;cursor:pointer;background:var(--bg-card);user-select:none;`;
+  header.innerHTML = `<span style="font-size:0.78rem;font-weight:600;color:var(--text-muted);">Без сета</span>
+    <span style="font-size:0.7rem;color:var(--text-muted);" class="acc-arrow">▼</span>`;
+
+  const body = document.createElement('div');
+  body.style.cssText = 'display:none;background:var(--bg-secondary);padding:6px 8px;';
+
+  let itemsHtml = NO_SET_ITEMS.map(it =>
+    buildItemChip(it, `equipSingleItem(${it.id}, '${it.slot_type}')`)
+  ).join('');
+  body.innerHTML = itemsHtml;
+
+  header.onclick = () => {
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    header.querySelector('.acc-arrow').textContent = isOpen ? '▼' : '▲';
+  };
+
+  wrap.appendChild(header);
+  wrap.appendChild(body);
+  return wrap;
+}
+
+async function equipSet(setId) {
+  const res = await gkcPost("{% url 'calculator:api_equip_set' %}", {
+    doll_id: DOLL_ID, set_id: setId,
+  });
+  if (res.ok) {
+    updateStatsDisplay(res.stats);
+    updateEffectsDisplay(res.effects);
+    res.equipped.forEach(e => {
+      slotState[e.slot_type] = { hasItem: true };
+      updateSlotDOM(e.slot_type, e.item_name, e.item_rarity, e.image_url);
+    });
+    showToast('Сет надет!');
+  }
+}
+
+async function equipSingleItem(itemId, slotType) {
+  const res = await gkcPost("{% url 'calculator:api_select_item' %}", {
+    doll_id: DOLL_ID, slot_type: slotType, item_id: itemId,
+  });
+  if (res.ok) {
+    updateStatsDisplay(res.stats);
+    updateEffectsDisplay(res.effects);
+    slotState[slotType] = { hasItem: true };
+    updateSlotDOM(slotType, res.item_name, res.item_rarity, res.image_url);
+    showToast(res.item_name + ' надет');
+  }
+}
+
+// Строим аккордеон при загрузке
+window.addEventListener('load', () => {
+  buildAccordion();
+  drawSkillEdges();
+});
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('slot-modal')) return;
+  document.getElementById('slot-modal').style.display = 'none';
+}
+
+async function setLevel(val) {
+  const res = await gkcPost("{% url 'calculator:api_set_level' %}", {
+    doll_id: DOLL_ID, level: parseInt(val),
+  });
+  if (res.ok) {
+    const pts = res.available_points;
+    document.getElementById('avail-pts').textContent = '(' + pts + ' очков)';
+    const skillPts = document.getElementById('avail-pts-skill');
+    if (res.is_over_budget) {
+      skillPts.textContent = '⚠ перебор!';
+      skillPts.classList.add('over-budget');
+      skillPts.title = 'Потрачено больше очков чем доступно по уровню. Нажмите Сброс.';
+    } else {
+      skillPts.textContent = pts + ' очков';
+      skillPts.classList.remove('over-budget');
+      skillPts.title = '';
+    }
+  }
+}
+
+async function resetSkills() {
+  const res = await gkcPost("{% url 'calculator:api_reset_skills' %}", { doll_id: DOLL_ID });
+  if (res.ok) {
+    updateStatsDisplay(res.stats);
+    const pts = res.available_points;
+    document.getElementById('avail-pts').textContent = '(' + pts + ' очков)';
+    const skillPts = document.getElementById('avail-pts-skill');
+    skillPts.textContent = pts + ' очков';
+    skillPts.classList.remove('over-budget');
+    skillPts.title = '';
+    // Сбрасываем все узлы визуально И в skillState
+    document.querySelectorAll('.skill-circle').forEach(el => {
+      const nodeId = parseInt(el.dataset.nodeId);
+      const maxPts = parseInt(el.dataset.maxPoints);
+      el.dataset.invested = 0;
+      el.className = 'skill-circle';
+      if (skillState[nodeId]) skillState[nodeId].invested = 0;
+      for (let i = 1; i <= maxPts; i++) {
+        const dot = document.getElementById('skill-dot-' + nodeId + '-' + i);
+        if (dot) dot.classList.remove('filled');
+      }
+    });
+    showToast('Навыки сброшены');
+  }
+}
+
+function formatStatVal(val) {
+  // Показываем до 2 знаков если дробное, иначе целое
+  return Number.isInteger(val) || Math.round(val) === val ? Math.round(val) : parseFloat(val.toFixed(2));
+}
+
+function updateStatsDisplay(stats) {
+  document.querySelectorAll('[id^="stat-"]').forEach(el => {
+    const slug = el.id.replace('stat-', '');
+    const val = stats[slug] || 0;
+    const isPct = el.textContent.includes('%');
+    el.textContent = formatStatVal(val) + (isPct ? '%' : '');
+  });
+}
+
+async function saveDoll() {
+  const res = await gkcPost("{% url 'calculator:api_save_doll' %}", { doll_id: DOLL_ID });
+  if (res.ok) showToast('Кукла сохранена!');
+}
+
+function loadDoll() {
+  if (!confirm('Загрузить сохранённую версию? Несохранённые изменения будут потеряны.')) return;
+  gkcPost("{% url 'calculator:api_load_doll' %}", { doll_id: DOLL_ID }).then(res => {
+    if (res.ok) {
+      window.location.href = res.redirect;
+    } else {
+      showToast(res.error || 'Нет сохранённого состояния', 3000);
+    }
+  });
+}
+
+async function copyShareLink() {
+  const res = await gkcPost("{% url 'calculator:api_create_snapshot' %}", { doll_id: DOLL_ID });
+  if (res.ok) {
+    navigator.clipboard.writeText(res.url).then(() => showToast('Ссылка скопирована!'));
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  КУКЛА СРАВНЕНИЯ — через те же API что и левая кукла
+// ══════════════════════════════════════════════════════
+
+let COMP_DOLL_ID = null;
+let compActiveSlot = null;
+// slotState для куклы сравнения
+const compSlotState = {};
+const compSkillState = {};
+
+// ─── Открытие/закрытие ───
+async function toggleComparison() {
+  const doll = document.getElementById('comp-doll');
+  const btn = document.getElementById('comp-toggle-btn');
+  const isOpen = doll.style.display !== 'none';
+
+  if (!isOpen) {
+    // Открываем — загружаем куклу сравнения
+    const res = await gkcPost("{% url 'calculator:api_get_comparison_doll' %}", {});
+    if (res.ok) {
+      COMP_DOLL_ID = res.doll_id;
+      document.getElementById('comp-doll-id').value = COMP_DOLL_ID;
+      document.getElementById('comp-level').value = res.level;
+      document.getElementById('comp-avail-pts').textContent = '(' + res.available_points + ' очков)';
+      document.getElementById('comp-avail-pts-skill').textContent = res.available_points + ' очков';
+
+      // Слоты
+      for (const [st, data] of Object.entries(res.slots)) {
+        compSlotState[st] = { hasItem: !!data.item_id };
+        if (data.item_id) {
+          compUpdateSlotDOM(st, data.item_name, data.item_rarity, data.image_url);
+        }
+      }
+
+      // Навыки
+      for (const [nodeId, pts] of Object.entries(res.invested_map)) {
+        compSkillState[parseInt(nodeId)] = pts;
+      }
+
+      // Сначала показываем блок, потом рендерим
+      doll.style.display = 'block';
+      btn.style.color = 'var(--accent)';
+      btn.style.borderColor = 'var(--accent)';
+
+      requestAnimationFrame(() => {
+        compRenderStats(res.stats);
+        compBuildSkillGrid();
+        compBuildAccordion();
+      });
+    }
+  } else {
+    doll.style.display = 'none';
+    btn.style.color = 'var(--text-secondary)';
+    btn.style.borderColor = 'var(--border-bright)';
+  }
+}
+
+// ─── Отображение статов с цветами сравнения ───
+function compUpdateEffects(effects) {
+  const block = document.getElementById('comp-effects-block');
+  const content = document.getElementById('comp-effects-content');
+  if (!block || !content) return;
+  if (!effects || effects.length === 0) {
+    block.style.display = 'none';
+    return;
+  }
+  block.style.display = '';
+  let html = '';
+  effects.forEach((eff, i) => {
+    const border = i < effects.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
+    html += `<div style="margin-bottom:6px;padding-bottom:6px;${border}">
+      <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:2px;">${eff.source}</div>
+      <div style="font-size:0.72rem;color:#f59e0b;font-weight:600;margin-bottom:2px;">${eff.name}</div>
+      <div style="font-size:0.68rem;color:var(--text-secondary);line-height:1.4;">${eff.description}</div>
+    </div>`;
+  });
+  content.innerHTML = html;
+}
+
+function compRenderStats(compStats) {
+  if (!compStats) return;
+  const powerEl = document.getElementById('comp-power-stats');
+  const resistEl = document.getElementById('comp-resist-stats');
+  if (!powerEl || !resistEl) return;
+
+  // Читаем статы левой куклы из DOM
+  const leftStats = {};
+  document.querySelectorAll('[id^="stat-"]').forEach(el => {
+    const slug = el.id.replace('stat-', '');
+    leftStats[slug] = parseFloat(el.textContent) || 0;
+  });
+
+  let powerHtml = '';
+  let resistHtml = '';
+
+  ALL_STATS.forEach(stat => {
+    const val = compStats[stat.slug] || 0;
+    const leftVal = leftStats[stat.slug] || 0;
+    const suffix = stat.is_percent ? '%' : '';
+    const displayVal = formatStatVal(val) + suffix;
+
+    let color = stat.category === 'power' ? 'var(--power-color)' : 'var(--resist-color)';
+    let diffHtml = '';
+
+    if (Math.abs(val - leftVal) > 0.01) {
+      let diffText;
+      if (leftVal === 0) {
+        diffText = val > 0 ? '+' : '-';
+      } else {
+        const pct = Math.round((val - leftVal) / Math.abs(leftVal) * 100);
+        diffText = (pct > 0 ? '+' : '') + pct + '%';
+      }
+      if (val > leftVal) {
+        color = '#22c55e';
+        diffHtml = `<span style="font-size:0.62rem;color:#22c55e">(${diffText})</span>`;
+      } else {
+        color = '#ef4444';
+        diffHtml = `<span style="font-size:0.62rem;color:#ef4444">(${diffText})</span>`;
+      }
+    }
+
+    const row = `<div class="stat-row">
+      <span class="stat-name">${stat.name_ru}</span>
+      <span class="stat-value" style="color:${color};min-width:auto;">
+        ${displayVal} ${diffHtml}
+      </span>
+    </div>`;
+
+    if (stat.category === 'power') powerHtml += row;
+    else resistHtml += row;
+  });
+
+  powerEl.innerHTML = powerHtml;
+  resistEl.innerHTML = resistHtml;
+}
+
+// ─── Слоты куклы сравнения ───
+function compOpenSlot(slotType, label) {
+  compActiveSlot = slotType;
+  const hasItem = compSlotState[slotType] && compSlotState[slotType].hasItem;
+  document.getElementById('comp-modal').style.display = 'flex';
+
+  if (hasItem) {
+    compSwitchToEdit();
+    gkcPost("{% url 'calculator:api_get_slot_stats' %}", {
+      doll_id: COMP_DOLL_ID, slot_type: slotType,
+    }).then(res => { if (res.ok) compRenderEditView(res); });
+  } else {
+    compSwitchToSelect(label);
+  }
+}
+
+function compSwitchToSelect(label) {
+  document.getElementById('comp-modal-select-view').style.display = 'block';
+  document.getElementById('comp-modal-edit-view').style.display = 'none';
+  if (label) document.getElementById('comp-modal-title').textContent = label;
+  const sel = document.getElementById('comp-modal-item-select');
+  sel.innerHTML = '<option value="">— пусто —</option>';
+  (ITEMS_BY_SLOT[compActiveSlot] || []).forEach(it => {
+    const opt = document.createElement('option');
+    opt.value = it.id; opt.textContent = it.name;
+    sel.appendChild(opt);
+  });
+}
+
+function compSwitchToEdit() {
+  document.getElementById('comp-modal-select-view').style.display = 'none';
+  document.getElementById('comp-modal-edit-view').style.display = 'block';
+}
+
+function compRenderEditView(res) {
+  document.getElementById('comp-modal-item-name').textContent = res.item_name;
+  const rarityEl = document.getElementById('comp-modal-item-rarity');
+  rarityEl.textContent = RARITY_NAMES[res.item_rarity] || '';
+  rarityEl.style.color = RARITY_COLORS[res.item_rarity] || '#fff';
+  const list = document.getElementById('comp-modal-stats-list');
+  list.innerHTML = '';
+  res.slot_stats.forEach(s => {
+    list.appendChild(buildStatRow(s.stat_id, s.stat_name, s.is_percent, s.custom_value, s.base_value, s.diff_pct));
+  });
+}
+
+async function compApplyItem(remove) {
+  const itemId = remove ? null : document.getElementById('comp-modal-item-select').value;
+  const res = await gkcPost("{% url 'calculator:api_select_item' %}", {
+    doll_id: COMP_DOLL_ID, slot_type: compActiveSlot, item_id: itemId || null,
+  });
+  if (res.ok) {
+    compSlotState[compActiveSlot] = { hasItem: !remove };
+    if (remove) {
+      compClearSlotDOM(compActiveSlot);
+      compCloseModal();
+    } else if (itemId && res.slot_stats && res.slot_stats.length) {
+      compUpdateSlotDOM(compActiveSlot, res.item_name, res.item_rarity, res.image_url);
+      compSwitchToEdit();
+      compRenderEditView(res);
+    } else {
+      compCloseModal();
+    }
+    compRenderStats(res.stats);
+    compUpdateEffects(res.effects);
+    showToast(remove ? 'Снято' : 'Надет: ' + res.item_name);
+  }
+}
+
+async function compSaveStats() {
+  const list = document.getElementById('comp-modal-stats-list');
+  const inputs = list ? list.querySelectorAll('input[data-stat-id]') : [];
+  const stats = {};
+  inputs.forEach(inp => { stats[inp.dataset.statId] = parseFloat(inp.value) || 0; });
+  const res = await gkcPost("{% url 'calculator:api_save_slot_stats' %}", {
+    doll_id: COMP_DOLL_ID, slot_type: compActiveSlot, stats,
+  });
+  if (res.ok) {
+    compRenderStats(res.stats);
+    showToast('Статы сохранены');
+    compCloseModal();
+  }
+}
+
+function compCloseModal(e) {
+  if (e && e.target !== document.getElementById('comp-modal')) return;
+  document.getElementById('comp-modal').style.display = 'none';
+}
+
+function compUpdateSlotDOM(slotType, itemName, rarity, imageUrl) {
+  const slotEl = document.getElementById('comp-slot-' + slotType);
+  if (!slotEl) return;
+  slotEl.style.borderColor = RARITY_COLORS[rarity] || 'var(--border)';
+  const labelEl = document.getElementById('comp-slot-label-' + slotType);
+  if (imageUrl) {
+    let img = slotEl.querySelector('img');
+    if (!img) { img = document.createElement('img'); slotEl.insertBefore(img, slotEl.firstChild); }
+    img.src = imageUrl;
+    img.style.cssText = 'width:80%;height:80%;object-fit:contain;';
+    if (labelEl) labelEl.style.display = 'none';
+  } else {
+    if (labelEl) { labelEl.textContent = itemName || slotType; labelEl.style.display = ''; }
+  }
+}
+
+function compClearSlotDOM(slotType) {
+  const slotEl = document.getElementById('comp-slot-' + slotType);
+  if (!slotEl) return;
+  slotEl.style.borderColor = '';
+  const img = slotEl.querySelector('img');
+  if (img) img.remove();
+  const labelEl = document.getElementById('comp-slot-label-' + slotType);
+  if (labelEl) { labelEl.style.display = ''; }
+}
+
+// ─── Навыки куклы сравнения ───
+function compBuildSkillGrid() {
+  const grid = document.getElementById('comp-skill-grid');
+  if (!grid || grid.querySelectorAll('.skill-node-wrap').length > 0) return;
+
+  {% regroup skill_nodes by order as comp_skill_rows %}
+  {% for row in comp_skill_rows %}{% for node in row.list %}
+  (function() {
+    const wrap = document.createElement('div');
+    wrap.className = 'skill-node-wrap';
+    const invested = compSkillState[{{ node.pk }}] || 0;
+    const maxPts = {{ node.max_points }};
+    wrap.innerHTML = `<div class="skill-circle ${invested >= maxPts && invested > 0 ? 'skill-complete' : invested > 0 ? 'skill-active' : ''}"
+         id="comp-node-{{ node.pk }}"
+         data-invested="${invested}" data-max="${maxPts}"
+         onclick="compClickSkill(event, {{ node.pk }}, ${maxPts}, 'add')"
+         oncontextmenu="compClickSkill(event, {{ node.pk }}, ${maxPts}, 'remove')"
+         title="{{ node.name }}">
+      <div class="skill-circle-dots" id="comp-dots-{{ node.pk }}">
+        ${Array.from({length: maxPts}, (_, i) =>
+          `<div class="skill-cdot ${i < invested ? 'filled' : ''}" id="comp-dot-{{ node.pk }}-${i+1}"></div>`
+        ).join('')}
+      </div>
+    </div>
+    <div class="skill-circle-label">{{ node.name|truncatechars:10 }}</div>`;
+    grid.appendChild(wrap);
+  })();
+  {% endfor %}{% endfor %}
+  // Рисуем линии связей после построения грида
+  setTimeout(drawCompSkillEdges, 50);
+}
+
+function drawCompSkillEdges() {
+  const wrap = document.getElementById('comp-skill-grid');
+  const svg = document.getElementById('comp-skill-svg');
+  if (!wrap || !svg) return;
+  const edges = JSON.parse(document.getElementById('skill-edges-data').textContent);
+  const wrapRect = wrap.getBoundingClientRect();
+  svg.innerHTML = '';
+  edges.forEach(edge => {
+    const from = document.getElementById('comp-node-' + edge.from);
+    const to   = document.getElementById('comp-node-' + edge.to);
+    if (!from || !to) return;
+    const fr = from.getBoundingClientRect();
+    const tr = to.getBoundingClientRect();
+    const x1 = fr.left + fr.width/2  - wrapRect.left;
+    const y1 = fr.top  + fr.height/2 - wrapRect.top;
+    const x2 = tr.left + tr.width/2  - wrapRect.left;
+    const y2 = tr.top  + tr.height/2 - wrapRect.top;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('stroke', 'var(--border-bright)');
+    line.setAttribute('stroke-width', '1.5');
+    svg.appendChild(line);
+  });
+}
+
+async function compClickSkill(event, nodeId, maxPoints, action) {
+  event.preventDefault();
+  const current = compSkillState[nodeId] || 0;
+  if (action === 'add' && current >= maxPoints) return;
+  if (action === 'remove' && current <= 0) return;
+
+  const res = await gkcPost("{% url 'calculator:api_update_skill' %}", {
+    doll_id: COMP_DOLL_ID, node_id: nodeId, action,
+  });
+  if (res.ok) {
+    compSkillState[nodeId] = res.invested;
+    const el = document.getElementById('comp-node-' + nodeId);
+    if (el) {
+      el.dataset.invested = res.invested;
+      el.className = 'skill-circle' +
+        (res.invested >= maxPoints ? ' skill-complete' : res.invested > 0 ? ' skill-active' : '');
+      for (let i = 1; i <= maxPoints; i++) {
+        const dot = document.getElementById('comp-dot-' + nodeId + '-' + i);
+        if (dot) dot.classList.toggle('filled', i <= res.invested);
+      }
+    }
+    document.getElementById('comp-avail-pts').textContent = '(' + res.available_points + ' очков)';
+    document.getElementById('comp-avail-pts-skill').textContent = res.available_points + ' очков';
+    compRenderStats(res.stats);
+    compUpdateEffects(res.effects);
+  } else {
+    showToast(res.error || 'Ошибка');
+  }
+}
+
+async function compResetSkills() {
+  const res = await gkcPost("{% url 'calculator:api_reset_skills' %}", { doll_id: COMP_DOLL_ID });
+  if (res.ok) {
+    Object.keys(compSkillState).forEach(k => { compSkillState[k] = 0; });
+    document.querySelectorAll('[id^="comp-node-"]').forEach(el => {
+      const nodeId = el.id.replace('comp-node-', '');
+      const maxPts = parseInt(el.dataset.max);
+      el.dataset.invested = 0;
+      el.className = 'skill-circle';
+      for (let i = 1; i <= maxPts; i++) {
+        const dot = document.getElementById('comp-dot-' + nodeId + '-' + i);
+        if (dot) dot.classList.remove('filled');
+      }
+    });
+    document.getElementById('comp-avail-pts').textContent = '(' + res.available_points + ' очков)';
+    document.getElementById('comp-avail-pts-skill').textContent = res.available_points + ' очков';
+    compRenderStats(res.stats);
+    compUpdateEffects(res.effects);
+    showToast('Навыки сброшены');
+  }
+}
+
+async function compSetLevel(val) {
+  const res = await gkcPost("{% url 'calculator:api_set_level' %}", {
+    doll_id: COMP_DOLL_ID, level: parseInt(val),
+  });
+  if (res.ok) {
+    document.getElementById('comp-avail-pts').textContent = '(' + res.available_points + ' очков)';
+    document.getElementById('comp-avail-pts-skill').textContent = res.available_points + ' очков';
+  }
+}
+
+// ─── Аккордеон сетов куклы сравнения ───
+function compBuildAccordion() {
+  const acc = document.getElementById('comp-sets-accordion');
+  if (!acc || acc.children.length > 0) return;
+
+  SETS_BY_RARITY.forEach(group => {
+    const color = RARITY_COLORS[group.rarity] || 'var(--text-secondary)';
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'border:1px solid var(--border);border-radius:5px;margin-bottom:3px;overflow:hidden;';
+    const header = document.createElement('div');
+    header.style.cssText = `display:flex;justify-content:space-between;padding:4px 8px;cursor:pointer;background:var(--bg-card);`;
+    header.innerHTML = `<span style="font-size:0.7rem;font-weight:600;color:${color};">${group.label}</span><span class="acc-arrow" style="font-size:0.6rem;color:var(--text-muted);">▼</span>`;
+    const body = document.createElement('div');
+    body.style.cssText = 'display:none;background:var(--bg-secondary);padding:4px 6px;';
+    group.sets.forEach(set => {
+      const div = document.createElement('div');
+      div.style.marginBottom = '5px';
+      let chips = set.items.map(it =>
+        buildItemChip(it, `compEquipSingle(${it.id},'${it.slot_type}')`)
+      ).join('');
+      div.innerHTML = `<div style="font-size:0.68rem;font-weight:600;margin-bottom:2px;">${set.name}</div>
+        <div>${chips}</div>
+        <button class="btn-gkc" style="font-size:0.58rem;padding:2px 5px;margin-top:2px;"
+                onclick="compEquipSet(${set.id})">⚔ Надеть</button>`;
+      body.appendChild(div);
+    });
+    header.onclick = () => {
+      const open = body.style.display !== 'none';
+      body.style.display = open ? 'none' : 'block';
+      header.querySelector('.acc-arrow').textContent = open ? '▼' : '▲';
+    };
+    wrap.appendChild(header); wrap.appendChild(body);
+    acc.appendChild(wrap);
+  });
+
+  // Без сета
+  if (NO_SET_ITEMS.length > 0) {
+    const wrap2 = document.createElement('div');
+    wrap2.style.cssText = 'border:1px solid var(--border);border-radius:5px;margin-bottom:3px;overflow:hidden;';
+    const header2 = document.createElement('div');
+    header2.style.cssText = `display:flex;justify-content:space-between;padding:4px 8px;cursor:pointer;background:var(--bg-card);`;
+    header2.innerHTML = `<span style="font-size:0.7rem;font-weight:600;color:var(--text-muted);">Без сета</span>
+      <span class="acc-arrow" style="font-size:0.6rem;color:var(--text-muted);">▼</span>`;
+    const body2 = document.createElement('div');
+    body2.style.cssText = 'display:none;background:var(--bg-secondary);padding:4px 6px;';
+    body2.innerHTML = NO_SET_ITEMS.map(it =>
+      buildItemChip(it, `compEquipSingle(${it.id},'${it.slot_type}')`)
+    ).join('');
+    header2.onclick = () => {
+      const open = body2.style.display !== 'none';
+      body2.style.display = open ? 'none' : 'block';
+      header2.querySelector('.acc-arrow').textContent = open ? '▼' : '▲';
+    };
+    wrap2.appendChild(header2); wrap2.appendChild(body2);
+    acc.appendChild(wrap2);
+  }
+}
+
+async function compEquipSingle(itemId, slotType) {
+  compActiveSlot = slotType;
+  const res = await gkcPost("{% url 'calculator:api_select_item' %}", {
+    doll_id: COMP_DOLL_ID, slot_type: slotType, item_id: itemId,
+  });
+  if (res.ok) {
+    compSlotState[slotType] = { hasItem: true };
+    compUpdateSlotDOM(slotType, res.item_name, res.item_rarity, res.image_url);
+    compRenderStats(res.stats);
+    compUpdateEffects(res.effects);
+    showToast(res.item_name + ' надет');
+  }
+}
+
+async function compEquipSet(setId) {
+  const res = await gkcPost("{% url 'calculator:api_equip_set' %}", {
+    doll_id: COMP_DOLL_ID, set_id: setId,
+  });
+  if (res.ok) {
+    res.equipped.forEach(e => {
+      compSlotState[e.slot_type] = { hasItem: true };
+      compUpdateSlotDOM(e.slot_type, e.item_name, e.item_rarity, e.image_url);
+    });
+    compRenderStats(res.stats);
+    compUpdateEffects(res.effects);
+    showToast('Сет надет на куклу сравнения');
+  }
+}
+
+</script>
+{% endblock %}
+=== C:\Dev\gkcalc\gkcalc\templates\404.html ===
+{% extends "base.html" %}
+{% block title %}404 — Страница не найдена{% endblock %}
+{% block content %}
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+            height:calc(100vh - 48px);gap:16px;color:var(--text-secondary);">
+  <div style="font-size:4rem;font-family:var(--font-display);color:var(--accent);">404</div>
+  <div style="font-size:1.2rem;">Страница не найдена</div>
+  <a href="/" class="btn-gkc" style="margin-top:8px;">На главную</a>
+</div>
+{% endblock %}
+=== C:\Dev\gkcalc\gkcalc\templates\500.html ===
+{% extends "base.html" %}
+{% block title %}500 — Ошибка сервера{% endblock %}
+{% block content %}
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+            height:calc(100vh - 48px);gap:16px;color:var(--text-secondary);">
+  <div style="font-size:4rem;font-family:var(--font-display);color:#ef4444;">500</div>
+  <div style="font-size:1.2rem;">Ошибка сервера</div>
+  <div style="font-size:0.85rem;color:var(--text-muted);">Мы уже знаем об этом и исправляем</div>
+  <a href="/" class="btn-gkc" style="margin-top:8px;">На главную</a>
+</div>
+{% endblock %}
+=== C:\Dev\gkcalc\gkcalc\templates\base.html ===
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}GKCalc — Gift Kombat Calculator{% endblock %}</title>
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+  <!-- Наш CSS поверх Bootstrap -->
+  <link rel="stylesheet" href="{% static 'css/gkc.css' %}">
+  {% block extra_head %}{% endblock %}
+   <!-- Yandex.Metrika counter --> <script type="text/javascript">     (function(m,e,t,r,i,k,a){         m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};         m[i].l=1*new Date();         for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}         k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)     })(window, document,'script','https://mc.webvisor.org/metrika/tag_ww.js?id=109075605', 'ym');      ym(109075605, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true}); </script> <noscript><div><img src="https://mc.yandex.ru/watch/109075605" style="position:absolute; left:-9999px;" alt="" /></div></noscript> <!-- /Yandex.Metrika counter -->
+  <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">     
+</head>
+<body>
+
+<nav class="gkc-nav">
+  <a href="{% url 'calculator:index' %}" class="gkc-logo">GKC <span>Gift Kombat Calc</span></a>
+  {% if user.is_authenticated %}
+    <span style="font-size:0.8rem;color:var(--text-secondary)">{{ user.email }}</span>
+    <a href="{% url 'accounts:logout' %}" style="font-size:0.75rem;color:var(--text-muted);text-decoration:none;">Выйти</a>
+  {% else %}
+    <a href="{% url 'accounts:login' %}" style="font-size:0.75rem;color:var(--text-secondary);text-decoration:none;">Войти</a>
+    <a href="{% url 'accounts:register' %}" style="font-size:0.75rem;color:var(--accent);text-decoration:none;">Регистрация</a>
+  {% endif %}
+  <button class="theme-toggle" onclick="toggleTheme()">☀ / ☾</button>
+</nav>
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<footer style="text-align:center;padding:12px;font-size:0.75rem;
+               color:var(--text-muted);border-top:1px solid var(--border);
+               background:var(--bg-secondary);margin-top:auto;">
+  <!-- Changelog -->
+  <div style="margin-bottom:10px;">
+    <div style="font-size:0.72rem;font-weight:600;color:#f59e0b;margin-bottom:6px;letter-spacing:1px;">📋 ОБНОВЛЕНИЯ</div>
+    <div style="display:inline-flex;flex-direction:column;align-items:flex-start;gap:3px;">
+      <span><span style="color:#f59e0b;font-weight:600;">07.05.2026</span> &nbsp;|&nbsp; Полностью заполнено дерево навыков</span>
+      <span><span style="color:#f59e0b;font-weight:600;">05.05.2026</span> &nbsp;|&nbsp; Запуск калькулятора</span>
+    </div>
+  </div>
+  <div style="border-top:1px solid var(--border);padding-top:10px;">
+    <a href="https://t.me/VS233" target="_blank"
+       style="color:var(--accent);text-decoration:none;margin:0 8px;">✈ @VS233</a>
+    <a href="mailto:v230786@gmail.com"
+       style="color:var(--accent);text-decoration:none;">✉ v230786@gmail.com</a>
+  </div>
+</footer>
+<div id="gkc-toast" class="gkc-toast" style="display:none"></div>
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('gkc-theme', html.dataset.theme);
+}
+(function(){
+  const t = localStorage.getItem('gkc-theme');
+  if (t) document.documentElement.dataset.theme = t;
+})();
+
+function showToast(msg, ms=2000) {
+  const t = document.getElementById('gkc-toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', ms);
+}
+
+function getCookie(name) {
+  const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return v ? v.pop() : '';
+}
+async function gkcPost(url, data) {
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify(data),
+    });
+    // 400 — ожидаемая ошибка валидации, читаем JSON
+    if (r.status === 400) {
+      return r.json();
+    }
+    if (!r.ok) {
+      const text = await r.text();
+      console.error('API error', r.status, url, text.slice(0, 200));
+      showToast('Ошибка сервера (' + r.status + '). Попробуйте ещё раз.', 3000);
+      return { ok: false, error: 'server_error', status: r.status };
+    }
+    return r.json();
+  } catch (err) {
+    console.error('Network error', url, err);
+    showToast('Нет соединения с сервером. Проверьте интернет.', 3000);
+    return { ok: false, error: 'network_error' };
+  }
+}
+</script>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>
+=== C:\Dev\gkcalc\gkcalc\manage.py ===
+#!/usr/bin/env python
+"""Django's command-line utility for administrative tasks."""
+import os
+import sys
+
+
+def main():
+    """Run administrative tasks."""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gkcalc.settings')
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+
+
+if __name__ == '__main__':
+    main()
