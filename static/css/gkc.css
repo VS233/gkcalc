@@ -265,6 +265,51 @@ html, body {
 .star.red    { background: var(--star-red); }
 
 /* ─── Дерево навыков ─── */
+
+/* Вкладки разделов */
+.skill-section-tabs {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.skill-section-tab {
+  flex: 1;
+  padding: 4px 4px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.skill-section-tab:hover {
+  border-color: var(--skill-color);
+  color: var(--text-primary);
+}
+.skill-section-tab.active {
+  background: rgba(167, 139, 250, 0.15);
+  border-color: var(--skill-color);
+  color: var(--skill-color);
+}
+
+/* Панели разделов */
+.skill-section-panel { display: block; }
+.skill-section-panel.hidden { display: none; }
+
+/* Сетка узлов */
+.skill-tree-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 6px;
+  padding: 6px 2px 10px;
+}
+
+/* Старые классы оставляем для совместимости */
 .skill-branch-title {
   font-family: var(--font-display);
   font-size: 0.7rem;
@@ -275,48 +320,18 @@ html, body {
   text-align: center;
   margin-bottom: 4px;
 }
-.skill-tree {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 4px;
-}
-.skill-node {
-  width: 100%;
-  aspect-ratio: 1;
-  max-width: 72px;
-  margin: 0 auto;
-  border-radius: var(--radius-sm);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  position: relative;
-  transition: all var(--transition);
-  font-size: 0.6rem;
-  text-align: center;
-  padding: 4px;
-  gap: 2px;
-}
-.skill-node:hover:not(.locked) { border-color: var(--skill-color); background: var(--bg-hover); }
-.skill-node.locked { opacity: 0.35; cursor: not-allowed; }
-.skill-node.active { border-color: var(--skill-color); background: rgba(167, 139, 250, 0.1); }
-.skill-node.full   { border-color: #a855f7; background: rgba(168, 85, 247, 0.2); }
-.skill-points-dots {
-  display: flex;
-  gap: 2px;
-  margin-top: 2px;
-}
 .skill-dot {
-  width: 7px;
-  height: 7px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: var(--border);
+  background: var(--border-bright);
   border: 1px solid var(--border-bright);
+  transition: background 0.15s, box-shadow 0.15s;
 }
-.skill-dot.filled { background: var(--skill-color); border-color: var(--skill-color); }
+.skill-dot.filled {
+  background: var(--skill-color);
+  border-color: var(--skill-color);
+}
 
 /* ─── Уровень персонажа ─── */
 .level-badge {
