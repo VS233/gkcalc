@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/doll/load/', views.api_load_doll, name='api_load_doll'),
     path('api/doll/snapshot/', views.api_create_snapshot, name='api_create_snapshot'),
     path('api/doll/level/', views.api_set_level, name='api_set_level'),
+    path('api/doll/detailed/', views.api_get_detailed_stats, name='api_get_detailed_stats'),
     path('api/set/equip/', views.api_equip_set, name='api_equip_set'),
     path('api/item/stats/', views.api_get_item_stats, name='api_get_item_stats'),
     path('api/comp/doll/', views.api_get_comparison_doll, name='api_get_comparison_doll'),

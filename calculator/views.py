@@ -12,7 +12,7 @@ from .services import (
     get_stats_grouped, get_available_points, get_total_points,
     get_spent_points, is_over_budget,
     can_unlock_node, can_remove_point, save_stats_snapshot,
-    calculate_doll_stats, get_active_effects,
+    calculate_doll_stats, get_active_effects, get_detailed_stats,
     save_doll_state, restore_doll_state,
     build_index_context, restore_doll_from_snapshot, build_doll_snapshot_state
 )
@@ -26,7 +26,6 @@ def _get_or_create_session_doll(request):
         except Doll.DoesNotExist:
             pass
 
-    # Создаём новую гостевую куклу — заодно чистим старые (>6 дней)
     from django.utils import timezone
     from datetime import timedelta
     Doll.objects.filter(
@@ -52,12 +51,12 @@ def _get_user_doll(request, slot_order=0):
             DollSlot.objects.create(doll=doll, slot_type=slot_type)
     return doll
 
+
 def _get_or_create_comparison_doll(request):
     """Кукла сравнения — гостевая, живёт в сессии. Старые чистим (>2 дней)."""
     from django.utils import timezone
     from datetime import timedelta
 
-    # Чистим старые куклы сравнения (старше 2 дней)
     Doll.objects.filter(
         owner=None,
         name='__comparison__',
@@ -82,7 +81,6 @@ def _get_doll(request, doll_id=None):
     """Получить куклу для текущего пользователя или гостя."""
     comp_id = request.session.get('comparison_doll_id')
 
-    # Если запрашивается кукла сравнения — она всегда owner=None
     if doll_id and comp_id and int(doll_id) == comp_id:
         return get_object_or_404(Doll, pk=doll_id, owner=None, name='__comparison__')
 
@@ -144,18 +142,15 @@ def api_select_item(request):
     doll_slot = get_object_or_404(DollSlot, doll=doll, slot_type=slot_type)
 
     if not item_id:
-        # Снять предмет
         doll_slot.item = None
         doll_slot.save()
         doll_slot.custom_stats.all().delete()
     else:
         item = get_object_or_404(Item, pk=item_id, slot_type=slot_type)
-        # Если предмет сменился — чистим старые статы
         if doll_slot.item_id != item.pk:
             doll_slot.custom_stats.all().delete()
         doll_slot.item = item
         doll_slot.save()
-        # Копируем базовые статы нового предмета (если ещё нет)
         existing_stat_ids = set(doll_slot.custom_stats.values_list('stat_id', flat=True))
         for item_stat in item.stats.select_related('stat').all():
             if item_stat.stat_id not in existing_stat_ids:
@@ -168,7 +163,6 @@ def api_select_item(request):
     fresh_doll = Doll.objects.get(pk=doll.pk)
     save_stats_snapshot(fresh_doll)
 
-    # Возвращаем статы слота для модалки
     slot_stats = []
     if doll_slot.item:
         for entry in doll_slot.get_stats_with_diff():
@@ -228,12 +222,12 @@ def api_save_slot_stats(request):
     data = json.loads(request.body)
     doll = _get_doll(request, data.get('doll_id'))
     slot_type = data.get('slot_type')
-    new_stats = data.get('stats', {})  # {stat_id: value}
+    new_stats = data.get('stats', {})
 
     doll_slot = get_object_or_404(DollSlot, doll=doll, slot_type=slot_type)
 
     for stat_id, value in new_stats.items():
-        value = max(0, float(value))  # только положительные
+        value = max(0, float(value))
         DollSlotStat.objects.update_or_create(
             doll_slot=doll_slot,
             stat_id=int(stat_id),
@@ -276,13 +270,12 @@ def api_update_skill(request):
 
     fresh_doll = Doll.objects.get(pk=doll.pk)
     save_stats_snapshot(fresh_doll)
-    stats = calculate_doll_stats(fresh_doll)
 
     return JsonResponse({
         'ok': True,
         'invested': doll_skill.points_invested,
         'available_points': get_available_points(fresh_doll),
-        'stats': stats,
+        'stats': calculate_doll_stats(fresh_doll),
     })
 
 
@@ -350,7 +343,6 @@ def api_equip_set(request):
             continue
         doll_slot.item = item
         doll_slot.save()
-        # Копируем базовые статы
         doll_slot.custom_stats.all().delete()
         for item_stat in item.stats.select_related('stat').all():
             DollSlotStat.objects.create(
@@ -375,7 +367,7 @@ def api_equip_set(request):
 
 @require_POST
 def api_get_item_stats(request):
-    """API: получить базовые статы предмета для куклы сравнения."""
+    """API: получить базовые статы предмета."""
     import json as _json
     data = _json.loads(request.body)
     item_id = data.get('item_id')
@@ -393,12 +385,20 @@ def api_get_item_stats(request):
 
 
 @require_POST
+def api_get_detailed_stats(request):
+    """API: подробная статистика куклы с разбивкой по источникам."""
+    data = json.loads(request.body)
+    doll = _get_doll(request, data.get('doll_id'))
+    detailed = get_detailed_stats(doll)
+    return JsonResponse({'ok': True, 'stats': detailed})
+
+
+@require_POST
 def api_get_comparison_doll(request):
     """API: получить или создать куклу сравнения."""
     doll = _get_or_create_comparison_doll(request)
     fresh_doll = Doll.objects.get(pk=doll.pk)
 
-    from .services import calculate_doll_stats, get_available_points
     doll_slots = {}
     for ds in fresh_doll.slots.select_related('item').prefetch_related('custom_stats__stat').all():
         doll_slots[ds.slot_type] = {
@@ -431,11 +431,9 @@ def api_copy_to_comparison(request):
     source = _get_doll(request, data.get('doll_id'))
     target = _get_or_create_comparison_doll(request)
 
-    # Копируем уровень
     target.character_level = source.character_level
     target.save(update_fields=['character_level'])
 
-    # Копируем слоты
     for src_slot in source.slots.select_related('item').prefetch_related('custom_stats__stat').all():
         tgt_slot, _ = DollSlot.objects.get_or_create(doll=target, slot_type=src_slot.slot_type)
         tgt_slot.item = src_slot.item
@@ -444,7 +442,6 @@ def api_copy_to_comparison(request):
         for cs in src_slot.custom_stats.all():
             DollSlotStat.objects.create(doll_slot=tgt_slot, stat=cs.stat, value=cs.value)
 
-    # Копируем навыки
     target.skill_points.all().delete()
     for sp in source.skill_points.all():
         DollSkill.objects.create(doll=target, node=sp.node, points_invested=sp.points_invested)
@@ -476,7 +473,7 @@ def api_copy_to_comparison(request):
 @require_POST
 @login_required
 def api_copy_doll(request):
-    """API: сохранить текущую (временную или обычную) куклу в слот пользователя."""
+    """API: сохранить текущую куклу в слот пользователя."""
     data = json.loads(request.body)
     slot_order = int(data.get('slot_order', 0))
     source_id = data.get('doll_id')
@@ -525,7 +522,6 @@ def api_load_doll(request):
         return JsonResponse({'ok': False, 'error': 'Нет сохранённого состояния'})
     restored = restore_doll_state(doll)
     if restored:
-        fresh = Doll.objects.get(pk=doll.pk)
         return JsonResponse({'ok': True, 'redirect': f'/?slot={doll.slot_order}'})
     return JsonResponse({'ok': False, 'error': 'Ошибка восстановления'})
 

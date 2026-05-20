@@ -53,6 +53,83 @@ def calculate_doll_stats(doll):
     return dict(totals)
 
 
+def get_detailed_stats(doll):
+    """
+    Возвращает подробную статистику куклы с разбивкой по источникам:
+    базовое + от предметов + от сетов + от навыков = итого.
+    Нулевые строки идут в конец.
+    """
+    from django.conf import settings as django_settings
+    from catalog.models import SetBonus
+
+    base_stats = django_settings.BASE_CHARACTER_STATS
+
+    items_totals = defaultdict(float)
+    sets_totals = defaultdict(float)
+    skills_totals = defaultdict(float)
+
+    # От предметов
+    set_counts = defaultdict(int)
+    for doll_slot in doll.slots.select_related('item__item_set').prefetch_related(
+        'item__stats__stat', 'custom_stats__stat'
+    ):
+        if not doll_slot.item:
+            continue
+        for slug, value in doll_slot.get_effective_stats().items():
+            items_totals[slug] += value
+        if doll_slot.item.item_set_id:
+            set_counts[doll_slot.item.item_set_id] += 1
+
+    # От сетов
+    for set_id, count in set_counts.items():
+        bonuses = SetBonus.objects.filter(
+            item_set_id=set_id,
+            pieces_required__lte=count,
+            stat__isnull=False,
+        ).select_related('stat')
+        for bonus in bonuses:
+            sets_totals[bonus.stat.slug] += bonus.value
+
+    # От навыков
+    for doll_skill in doll.skill_points.select_related('node').prefetch_related('node__bonuses__stat'):
+        if doll_skill.points_invested > 0:
+            for bonus in doll_skill.node.bonuses.all():
+                skills_totals[bonus.stat.slug] += bonus.get_value_for_points(doll_skill.points_invested)
+
+    # Собираем все статы из справочника
+    stats_qs = Stat.objects.all().order_by('order')
+
+    result_nonzero = []
+    result_zero = []
+
+    for stat in stats_qs:
+        slug = stat.slug
+        base = base_stats.get(slug, 0)
+        items = items_totals.get(slug, 0)
+        sets = sets_totals.get(slug, 0)
+        skills = skills_totals.get(slug, 0)
+        total = base + items + sets + skills
+
+        entry = {
+            'slug': slug,
+            'name': stat.name_ru,
+            'is_percent': stat.is_percent,
+            'category': stat.category,
+            'base': round(base, 2),
+            'items': round(items, 2),
+            'sets': round(sets, 2),
+            'skills': round(skills, 2),
+            'total': round(total, 2),
+        }
+
+        if total == 0 and base == 0 and items == 0 and sets == 0 and skills == 0:
+            result_zero.append(entry)
+        else:
+            result_nonzero.append(entry)
+
+    return result_nonzero + result_zero
+
+
 def get_stats_grouped(doll):
     """
     Возвращает статы куклы, сгруппированные по категории (мощь / сопротивление),
@@ -118,7 +195,7 @@ def can_unlock_node(doll, node):
             'points_invested', flat=True
         ).first() or 0
         if invested >= parent.max_points:
-            return True  # нашли хотя бы одного заполненного родителя
+            return True
 
     return False
 
@@ -142,21 +219,18 @@ def can_remove_point(doll, node):
         ).first() or 0
         return invested >= n.max_points
 
-    # Смотрим все рёбра ОТ этого узла (дочерние)
     for edge in node.edges_from.select_related('to_node').all():
         child = edge.to_node
         if not is_invested(child):
-            continue  # дочерний не прокачан — ок
+            continue
 
-        # Дочерний прокачан — проверяем есть ли у него другой заполненный родитель
-        # (альтернативный путь через диагональ)
         child_edges = list(child.edges_to.select_related('from_node').all())
         other_parents_ok = any(
             e.from_node.pk != node.pk and node_is_full(e.from_node)
             for e in child_edges
         )
         if not other_parents_ok:
-            return False  # дочерний зависит только от нас — откат запрещён
+            return False
 
     return True
 
@@ -177,12 +251,10 @@ def get_active_effects(doll):
     from catalog.models import SetBonus
     effects = []
 
-    # Считаем предметы по сетам и собираем эффект духа
     set_counts = defaultdict(int)
     for doll_slot in doll.slots.select_related('item__item_set', 'item__effect').all():
         if not doll_slot.item:
             continue
-        # Эффект духа-хранителя
         if doll_slot.slot_type == 'guardian' and doll_slot.item.effect:
             eff = doll_slot.item.effect
             effects.append({
@@ -193,7 +265,6 @@ def get_active_effects(doll):
         if doll_slot.item.item_set_id:
             set_counts[doll_slot.item.item_set_id] += 1
 
-    # Эффекты от сетов
     for set_id, count in set_counts.items():
         bonuses = SetBonus.objects.filter(
             item_set_id=set_id,
@@ -240,11 +311,9 @@ def restore_doll_state(doll):
     if not state:
         return False
 
-    # Уровень
     doll.character_level = state.get('character_level', 1)
     doll.save(update_fields=['character_level'])
 
-    # Слоты
     for slot_type, slot_data in state.get('slots', {}).items():
         ds, _ = DollSlot.objects.get_or_create(doll=doll, slot_type=slot_type)
         item_id = slot_data.get('item_id')
@@ -254,7 +323,6 @@ def restore_doll_state(doll):
         for stat_id, value in slot_data.get('stats', {}).items():
             DollSlotStat.objects.create(doll_slot=ds, stat_id=int(stat_id), value=value)
 
-    # Навыки
     doll.skill_points.all().delete()
     for node_id, points in state.get('skills', {}).items():
         if points > 0:

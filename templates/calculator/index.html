@@ -159,11 +159,21 @@
       </div>
 
     </div>
+    
+      <div style="width: 100%; margin: 0px 0; display: flex; align-items: center; justify-content: center; position: relative;">
+    
+        <!-- Кнопка прижата к левому краю и не мешает центрированию текста -->
+        <button class="btn-gkc btn-gkc-outline" style="font-size: 0.6rem; padding: 3px 8px; position: absolute; left: 0;" onclick="openDetailedStats()">📊 Подробно</button>
+    
+        <!-- Текст выровнен ровно по центру родительского блока -->
+        <div style="text-align: center;">
+          <div style="font-family: var(--font-display); font-size: 0.9rem; color: var(--accent);">{{ doll.name }}</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted);">Уровень {{ doll.character_level }}</div>
+        </div>
 
-      <div style="text-align:center;margin:0px 0;">
-        <div style="font-family:var(--font-display);font-size:0.9rem;color:var(--accent);">{{ doll.name }}</div>
-        <div style="font-size:0.7rem;color:var(--text-muted);">Уровень {{ doll.character_level }}</div>
       </div>
+
+
 
     <input type="hidden" id="doll-id" value="{{ doll.pk }}">
     <input type="hidden" id="doll-uuid" value="{{ doll.uuid }}">
@@ -512,6 +522,18 @@
   </div>
 </div>
 
+<!-- Модальное окно подробной статистики -->
+<div id="detailed-stats-modal" class="gkc-modal-backdrop" style="display:none;" onclick="closeDetailedStatsModal(event)">
+  <div class="gkc-modal" onclick="event.stopPropagation()" style="min-width:380px;max-width:560px;max-height:80vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="gkc-modal-title">📊 Подробная статистика</div>
+      <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:3px 8px;" onclick="closeDetailedStatsModal()">✕</button>
+    </div>
+    <div id="detailed-stats-content">
+      <div style="color:var(--text-muted);font-size:0.8rem;text-align:center;">Загрузка...</div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -1162,6 +1184,72 @@ function updateStatsDisplay(stats) {
     const isPct = el.textContent.includes('%');
     el.textContent = formatStatVal(val) + (isPct ? '%' : '');
   });
+}
+
+// ─── Подробная статистика ───
+async function openDetailedStats() {
+  document.getElementById('detailed-stats-modal').style.display = 'flex';
+  document.getElementById('detailed-stats-content').innerHTML =
+    '<div style="color:var(--text-muted);font-size:0.8rem;text-align:center;padding:20px;">Загрузка...</div>';
+
+  const res = await gkcPost("{% url 'calculator:api_get_detailed_stats' %}", { doll_id: DOLL_ID });
+  if (!res.ok) { showToast('Ошибка загрузки'); return; }
+
+  const suffix = s => s.is_percent ? '%' : '';
+  const fmt = v => v === 0 ? '—' : (v > 0 ? '+' : '') + formatStatVal(v) + (v !== 0 ? '' : '');
+  const fmtTotal = (s, v) => formatStatVal(v) + suffix(s);
+
+  let html = `
+    <table style="width:100%;border-collapse:collapse;font-size:0.75rem;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:left;padding:4px 6px;color:var(--text-muted);font-weight:600;">Стат</th>
+          <th style="text-align:right;padding:4px 6px;color:var(--text-muted);font-weight:600;">База</th>
+          <th style="text-align:right;padding:4px 6px;color:var(--text-muted);font-weight:600;">Вещи</th>
+          <th style="text-align:right;padding:4px 6px;color:var(--text-muted);font-weight:600;">Сеты</th>
+          <th style="text-align:right;padding:4px 6px;color:var(--text-muted);font-weight:600;">Навыки</th>
+          <th style="text-align:right;padding:4px 6px;color:var(--accent);font-weight:700;">Итого</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  let lastCategory = null;
+  res.stats.forEach(s => {
+    const isZero = s.total === 0 && s.base === 0 && s.items === 0 && s.sets === 0 && s.skills === 0;
+    const catColor = s.category === 'power' ? 'var(--power-color)' : 'var(--resist-color)';
+
+    if (s.category !== lastCategory) {
+      const catLabel = s.category === 'power' ? '⚔ Мощь' : '🛡 Сопротивление';
+      html += `<tr><td colspan="6" style="padding:8px 6px 4px;font-size:0.7rem;font-weight:700;
+               color:${catColor};letter-spacing:0.5px;">${catLabel}</td></tr>`;
+      lastCategory = s.category;
+    }
+
+    const rowStyle = isZero ? 'opacity:0.4;' : '';
+    const suf = suffix(s);
+    const baseStr = s.base ? formatStatVal(s.base) + suf : '—';
+    const itemsStr = s.items ? '+' + formatStatVal(s.items) + suf : '—';
+    const setsStr = s.sets ? '+' + formatStatVal(s.sets) + suf : '—';
+    const skillsStr = s.skills ? '+' + formatStatVal(s.skills) + suf : '—';
+    const totalStr = fmtTotal(s, s.total);
+
+    html += `<tr style="border-bottom:1px solid var(--border);${rowStyle}">
+      <td style="padding:4px 6px;color:var(--text-secondary);">${s.name}</td>
+      <td style="padding:4px 6px;text-align:right;color:var(--text-muted);">${baseStr}</td>
+      <td style="padding:4px 6px;text-align:right;color:${s.items ? '#3b82f6' : 'var(--text-muted)'};">${itemsStr}</td>
+      <td style="padding:4px 6px;text-align:right;color:${s.sets ? '#a855f7' : 'var(--text-muted)'};">${setsStr}</td>
+      <td style="padding:4px 6px;text-align:right;color:${s.skills ? '#22c55e' : 'var(--text-muted)'};">${skillsStr}</td>
+      <td style="padding:4px 6px;text-align:right;font-weight:700;color:${catColor};">${totalStr}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('detailed-stats-content').innerHTML = html;
+}
+
+function closeDetailedStatsModal(e) {
+  if (e && e.target !== document.getElementById('detailed-stats-modal')) return;
+  document.getElementById('detailed-stats-modal').style.display = 'none';
 }
 
 async function saveDoll() {
