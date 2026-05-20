@@ -270,6 +270,15 @@
                  padding:10px 5px;cursor:pointer;z-index:100;letter-spacing:1px;
                  transition:all 0.2s;">⚖ СРАВНИТЬ</button>
 
+  <!-- Кнопка копирования — появляется только когда кукла сравнения открыта -->
+  <button id="comp-copy-btn" onclick="copyToComparison()"
+          style="display:none;pointer-events:all;position:absolute;left:-20px;top:calc(50% + 110px);
+                 transform:translateY(-50%);background:var(--bg-card);
+                 border:1px solid var(--border-bright);border-radius:6px 0 0 6px;
+                 color:var(--text-secondary);font-size:0.65rem;writing-mode:vertical-rl;
+                 padding:10px 5px;cursor:pointer;z-index:100;letter-spacing:1px;
+                 transition:all 0.2s;">📋 КОПИРОВАТЬ</button>
+
   <!-- Содержимое куклы сравнения -->
   <div id="comp-doll" style="display:none;pointer-events:all;width:100%;height:100%;
                               background:var(--bg-primary);border-left:2px solid var(--border-bright);
@@ -1086,7 +1095,6 @@ async function equipSingleItem(itemId, slotType) {
   }
 }
 
-// Строим аккордеон при загрузке
 window.addEventListener('load', () => {
   buildAccordion();
   const firstTab = document.querySelector('#skill-section-tabs .skill-section-tab');
@@ -1192,6 +1200,7 @@ const compSkillState = {};
 async function toggleComparison() {
   const doll = document.getElementById('comp-doll');
   const btn = document.getElementById('comp-toggle-btn');
+  const copyBtn = document.getElementById('comp-copy-btn');
   const isOpen = doll.style.display !== 'none';
 
   if (!isOpen) {
@@ -1212,7 +1221,6 @@ async function toggleComparison() {
 
       for (const [nodeId, pts] of Object.entries(res.invested_map)) {
         compSkillState[parseInt(nodeId)] = pts;
-        // Восстанавливаем визуальное состояние узлов
         const el = document.getElementById('comp-node-' + nodeId);
         if (el) {
           const maxPts = parseInt(el.dataset.maxPoints);
@@ -1229,6 +1237,7 @@ async function toggleComparison() {
       doll.style.display = 'block';
       btn.style.color = 'var(--accent)';
       btn.style.borderColor = 'var(--accent)';
+      copyBtn.style.display = 'block';
 
       requestAnimationFrame(() => {
         compRenderStats(res.stats);
@@ -1241,6 +1250,51 @@ async function toggleComparison() {
     doll.style.display = 'none';
     btn.style.color = 'var(--text-secondary)';
     btn.style.borderColor = 'var(--border-bright)';
+    copyBtn.style.display = 'none';
+  }
+}
+
+// ─── Копирование основной куклы в куклу сравнения ───
+async function copyToComparison() {
+  if (!confirm('Скопировать основную куклу в куклу сравнения? Текущие данные будут перезаписаны.')) return;
+
+  const res = await gkcPost("{% url 'calculator:api_copy_to_comparison' %}", {
+    doll_id: DOLL_ID,
+  });
+
+  if (res.ok) {
+    document.getElementById('comp-level').value = res.level;
+    document.getElementById('comp-avail-pts').textContent = '(' + res.available_points + ' очков)';
+    document.getElementById('comp-avail-pts-skill').textContent = res.available_points + ' очков';
+
+    Object.entries(res.slots).forEach(([st, data]) => {
+      compSlotState[st] = { hasItem: !!data.item_id };
+      if (data.item_id) {
+        compUpdateSlotDOM(st, data.item_name, data.item_rarity, data.image_url);
+      } else {
+        compClearSlotDOM(st);
+      }
+    });
+
+    Object.keys(compSkillState).forEach(k => { compSkillState[k] = 0; });
+    document.querySelectorAll('[id^="comp-node-"]').forEach(el => {
+      const nodeId = parseInt(el.id.replace('comp-node-', ''));
+      const maxPts = parseInt(el.dataset.maxPoints);
+      const pts = res.invested_map[nodeId] || 0;
+      compSkillState[nodeId] = pts;
+      el.dataset.invested = pts;
+      el.className = 'skill-circle' +
+        (pts >= maxPts && pts > 0 ? ' skill-complete' : pts > 0 ? ' skill-active' : '');
+      for (let i = 1; i <= maxPts; i++) {
+        const dot = document.getElementById('comp-dot-' + nodeId + '-' + i);
+        if (dot) dot.classList.toggle('filled', i <= pts);
+      }
+    });
+
+    setTimeout(() => compRenderStats(res.stats), 50);
+    showToast('Скопировано в куклу сравнения!');
+  } else {
+    showToast(res.error || 'Ошибка копирования', 2500);
   }
 }
 

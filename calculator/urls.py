@@ -18,5 +18,6 @@ urlpatterns = [
     path('api/set/equip/', views.api_equip_set, name='api_equip_set'),
     path('api/item/stats/', views.api_get_item_stats, name='api_get_item_stats'),
     path('api/comp/doll/', views.api_get_comparison_doll, name='api_get_comparison_doll'),
+    path('api/comp/copy/', views.api_copy_to_comparison, name='api_copy_to_comparison'),
     path('api/doll/copy/', views.api_copy_doll, name='api_copy_doll'),
 ]

@@ -425,6 +425,55 @@ def api_get_comparison_doll(request):
 
 
 @require_POST
+def api_copy_to_comparison(request):
+    """API: копировать основную куклу в куклу сравнения."""
+    data = json.loads(request.body)
+    source = _get_doll(request, data.get('doll_id'))
+    target = _get_or_create_comparison_doll(request)
+
+    # Копируем уровень
+    target.character_level = source.character_level
+    target.save(update_fields=['character_level'])
+
+    # Копируем слоты
+    for src_slot in source.slots.select_related('item').prefetch_related('custom_stats__stat').all():
+        tgt_slot, _ = DollSlot.objects.get_or_create(doll=target, slot_type=src_slot.slot_type)
+        tgt_slot.item = src_slot.item
+        tgt_slot.save(update_fields=['item'])
+        tgt_slot.custom_stats.all().delete()
+        for cs in src_slot.custom_stats.all():
+            DollSlotStat.objects.create(doll_slot=tgt_slot, stat=cs.stat, value=cs.value)
+
+    # Копируем навыки
+    target.skill_points.all().delete()
+    for sp in source.skill_points.all():
+        DollSkill.objects.create(doll=target, node=sp.node, points_invested=sp.points_invested)
+
+    save_stats_snapshot(target)
+    fresh = Doll.objects.get(pk=target.pk)
+
+    doll_slots = {}
+    for ds in fresh.slots.select_related('item').all():
+        doll_slots[ds.slot_type] = {
+            'item_id': ds.item_id,
+            'item_name': ds.item.name if ds.item else None,
+            'item_rarity': ds.item.rarity if ds.item else None,
+            'image_url': ds.item.image.url if ds.item and ds.item.image and ds.item.image.name else None,
+        }
+
+    invested_map = {ds.node_id: ds.points_invested for ds in fresh.skill_points.all()}
+
+    return JsonResponse({
+        'ok': True,
+        'level': fresh.character_level,
+        'stats': calculate_doll_stats(fresh),
+        'available_points': get_available_points(fresh),
+        'slots': doll_slots,
+        'invested_map': invested_map,
+    })
+
+
+@require_POST
 @login_required
 def api_copy_doll(request):
     """API: сохранить текущую (временную или обычную) куклу в слот пользователя."""
