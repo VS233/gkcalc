@@ -1459,7 +1459,7 @@ function compRenderStats(compStats) {
   const leftStats = {};
   document.querySelectorAll('[id^="stat-"]').forEach(el => {
     const slug = el.id.replace('stat-', '');
-    leftStats[slug] = parseFloat(el.textContent) || 0;
+    leftStats[slug] = parseFloat(el.textContent.replace(',', '.').replace('%', '')) || 0;
   });
 
   let powerHtml = '';
