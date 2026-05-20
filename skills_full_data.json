@@ -1,0 +1,6849 @@
+[
+{
+  "model": "catalog.stat",
+  "pk": 1,
+  "fields": {
+    "slug": "health",
+    "name_ru": "Здоровье",
+    "category": "power",
+    "order": 1,
+    "is_percent": false
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 2,
+  "fields": {
+    "slug": "attack",
+    "name_ru": "Атака",
+    "category": "power",
+    "order": 2,
+    "is_percent": false
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 3,
+  "fields": {
+    "slug": "defense",
+    "name_ru": "Защита",
+    "category": "power",
+    "order": 3,
+    "is_percent": false
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 4,
+  "fields": {
+    "slug": "accuracy",
+    "name_ru": "Точность",
+    "category": "power",
+    "order": 4,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 5,
+  "fields": {
+    "slug": "crit_chance",
+    "name_ru": "Крит. шанс",
+    "category": "power",
+    "order": 5,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 6,
+  "fields": {
+    "slug": "crit_damage",
+    "name_ru": "Крит. урон",
+    "category": "power",
+    "order": 6,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 7,
+  "fields": {
+    "slug": "pure_chance",
+    "name_ru": "Чист. шанс",
+    "category": "power",
+    "order": 7,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 8,
+  "fields": {
+    "slug": "pure_damage",
+    "name_ru": "Чистый урон",
+    "category": "power",
+    "order": 8,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 9,
+  "fields": {
+    "slug": "evasion",
+    "name_ru": "Уклонение",
+    "category": "power",
+    "order": 9,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 10,
+  "fields": {
+    "slug": "reflection",
+    "name_ru": "Отражение",
+    "category": "power",
+    "order": 10,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 11,
+  "fields": {
+    "slug": "vampirism",
+    "name_ru": "Вампиризм",
+    "category": "power",
+    "order": 11,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 12,
+  "fields": {
+    "slug": "res_vampirism",
+    "name_ru": "Сопр. вампиризму",
+    "category": "resistance",
+    "order": 12,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 13,
+  "fields": {
+    "slug": "res_crit_chance",
+    "name_ru": "Сопр. крит. шансу",
+    "category": "resistance",
+    "order": 13,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 14,
+  "fields": {
+    "slug": "res_crit_damage",
+    "name_ru": "Сопр. крит. урону",
+    "category": "resistance",
+    "order": 14,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 15,
+  "fields": {
+    "slug": "res_pure_chance",
+    "name_ru": "Сопр. чист. шансу",
+    "category": "resistance",
+    "order": 15,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 16,
+  "fields": {
+    "slug": "res_reflection",
+    "name_ru": "Сопр. отражению",
+    "category": "resistance",
+    "order": 17,
+    "is_percent": true
+  }
+},
+{
+  "model": "catalog.stat",
+  "pk": 17,
+  "fields": {
+    "slug": "res_pure_damage",
+    "name_ru": "Сопр. чист. урону",
+    "category": "resistance",
+    "order": 16,
+    "is_percent": true
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 73,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 1,
+    "name": "Атака",
+    "description": "Атака: +5",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 74,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 2,
+    "name": "Атака",
+    "description": "Атака: +8",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 75,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 3,
+    "name": "Атака",
+    "description": "Атака: +10",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 76,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 4,
+    "name": "Атака",
+    "description": "Атака: +13",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 77,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 5,
+    "name": "Атака",
+    "description": "Атака: +16",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 78,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 6,
+    "name": "Атака",
+    "description": "Атака: +18",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 79,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 7,
+    "name": "Атака",
+    "description": "Атака: +20",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 80,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 1,
+    "name": "Крит. шанс",
+    "description": "Крит. шанс: +2,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 81,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 2,
+    "name": "Крит. урон",
+    "description": "Крит. урон: +2,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 82,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 3,
+    "name": "Крит. шанс",
+    "description": "Крит. шанс: +3,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 83,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 4,
+    "name": "Крит. урон",
+    "description": "Крит. урон: +3,0%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 84,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 5,
+    "name": "Здоровье",
+    "description": "Здоровье: +100",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 85,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 6,
+    "name": "Крит. урон",
+    "description": "Крит. урон: +3,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 86,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 7,
+    "name": "Крит. шанс",
+    "description": "Крит. шанс: +5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 87,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 1,
+    "name": "Точность",
+    "description": "Точность: +1,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 88,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 2,
+    "name": "Точность",
+    "description": "Точность: +1,8%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 89,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 3,
+    "name": "Точность",
+    "description": "Точность: +2%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 90,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 4,
+    "name": "Точность",
+    "description": "Точность: +2,2%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 91,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 5,
+    "name": "Точность",
+    "description": "Точность: +2,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 92,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 6,
+    "name": "Точность",
+    "description": "Точность: +2,8%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 93,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 7,
+    "name": "Похищение жизни",
+    "description": "Вампиризм: +2%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 94,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 8,
+    "name": "Атака",
+    "description": "Атака: +24",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 95,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 9,
+    "name": "Атака",
+    "description": "Атака: +28",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 96,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 10,
+    "name": "Атака",
+    "description": "Атака: +32",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 97,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 11,
+    "name": "Атака",
+    "description": "Атака: +36",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 98,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 12,
+    "name": "Атака",
+    "description": "Атака: +40",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 99,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 13,
+    "name": "Атака",
+    "description": "Атака: +45",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 100,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 14,
+    "name": "Атака",
+    "description": "Атака: +50",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 101,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 15,
+    "name": "Атака",
+    "description": "Атака: +58",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 102,
+  "fields": {
+    "section": "attack",
+    "branch": "1",
+    "order": 16,
+    "name": "Атака",
+    "description": "Атака: +68",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 103,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 8,
+    "name": "Крит. урон",
+    "description": "Крит. урон: +5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 104,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 9,
+    "name": "Здоровье",
+    "description": "Здоровье: +200",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 105,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 10,
+    "name": "Крит. урон",
+    "description": "Крит. урон: +5,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 106,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 11,
+    "name": "Крит. шанс",
+    "description": "Крит. шанс: +6,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 107,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 12,
+    "name": "Крит. урон",
+    "description": "Крит. урон: +6,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 108,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 13,
+    "name": "Здоровье",
+    "description": "Здоровье: +300",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 109,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 14,
+    "name": "Крит. урон",
+    "description": "Крит. урон: +9%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 110,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 15,
+    "name": "Крит. шанс",
+    "description": "Крит. шанс: +9%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 111,
+  "fields": {
+    "section": "attack",
+    "branch": "2",
+    "order": 16,
+    "name": "Крит. урон",
+    "description": "Крит. урон: +13%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 112,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 8,
+    "name": "Точность",
+    "description": "Точность: +3%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 113,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 9,
+    "name": "Точность",
+    "description": "Точность: +3,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 114,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 10,
+    "name": "Похищение жизни",
+    "description": "Вампиризм: +3%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 115,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 11,
+    "name": "Точность",
+    "description": "Точность: 4%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 116,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 12,
+    "name": "Точность",
+    "description": "Точность: +4,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 117,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 13,
+    "name": "Похищение жизни",
+    "description": "Вампиризм: +6%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 118,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 14,
+    "name": "Точность",
+    "description": "Точность: +5,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 119,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 15,
+    "name": "Точность",
+    "description": "Точность: +7,7%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 120,
+  "fields": {
+    "section": "attack",
+    "branch": "3",
+    "order": 16,
+    "name": "Похищение жизни",
+    "description": "Вампиризм: +9%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 121,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 1,
+    "name": "Защита",
+    "description": "Защита: +15",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 122,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 2,
+    "name": "Защита",
+    "description": "Защита: +20",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 123,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 3,
+    "name": "Защита",
+    "description": "Защита: +25",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 124,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 4,
+    "name": "Защита",
+    "description": "Защита: +30",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 125,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 5,
+    "name": "Защита",
+    "description": "Защита: +35",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 126,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 6,
+    "name": "Защита",
+    "description": "Защита: +42",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 127,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 7,
+    "name": "Защита",
+    "description": "Защита: +48",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 128,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 8,
+    "name": "Защита",
+    "description": "Защита: +56",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 129,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 9,
+    "name": "Защита",
+    "description": "Защита: +64",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 130,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 10,
+    "name": "Защита",
+    "description": "Защита: +72",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 131,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 11,
+    "name": "Защита",
+    "description": "Защита: +82",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 132,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 12,
+    "name": "Защита",
+    "description": "Защита: +92",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 133,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 13,
+    "name": "Защита",
+    "description": "Защита: +102",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 134,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 14,
+    "name": "Защита",
+    "description": "Защита: +112",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 135,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 15,
+    "name": "Защита",
+    "description": "Защита: +120",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 136,
+  "fields": {
+    "section": "defense",
+    "branch": "1",
+    "order": 16,
+    "name": "Защита",
+    "description": "Защита: +150",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 137,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 1,
+    "name": "Уклонение",
+    "description": "Уклонение: +1%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 138,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 2,
+    "name": "Здоровье",
+    "description": "Здоровье: +50",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 139,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 3,
+    "name": "Уклонение",
+    "description": "Уклонение: +1,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 140,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 4,
+    "name": "Здоровье",
+    "description": "Здоровье: +70",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 141,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 5,
+    "name": "Уклонение",
+    "description": "Уклонение: +2%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 142,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 6,
+    "name": "Здоровье",
+    "description": "Здоровье: +95",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 143,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 7,
+    "name": "Уклонение",
+    "description": "Уклонение: +2,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 144,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 8,
+    "name": "Здоровье",
+    "description": "Здоровье: +115",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 145,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 9,
+    "name": "Уклонение",
+    "description": "Уклонение: +3%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 146,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 10,
+    "name": "Здоровье",
+    "description": "Здоровье: +135",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 147,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 11,
+    "name": "Уклонение",
+    "description": "Уклонение: +4%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 148,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 12,
+    "name": "Здоровье",
+    "description": "Здоровье: +155",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 149,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 13,
+    "name": "Уклонение",
+    "description": "Уклонение: +5,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 150,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 14,
+    "name": "Здоровье",
+    "description": "Здоровье: +170",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 151,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 15,
+    "name": "Уклонение",
+    "description": "Уклонение: +8%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 152,
+  "fields": {
+    "section": "defense",
+    "branch": "3",
+    "order": 16,
+    "name": "Здоровье",
+    "description": "Здоровье: +185",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 153,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 1,
+    "name": "Здоровье",
+    "description": "Здоровье: +40",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 154,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 2,
+    "name": "Здоровье",
+    "description": "Здоровье: +50",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 155,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 3,
+    "name": "Здоровье",
+    "description": "Здоровье: +60",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 156,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 4,
+    "name": "Здоровье",
+    "description": "Здоровье: +75",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 157,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 5,
+    "name": "Здоровье",
+    "description": "Здоровье: +160",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 158,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 6,
+    "name": "Здоровье",
+    "description": "Здоровье: +100",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 159,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 7,
+    "name": "Здоровье",
+    "description": "Здоровье: +115",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 160,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 8,
+    "name": "Здоровье",
+    "description": "Здоровье: +130",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 161,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 9,
+    "name": "Здоровье",
+    "description": "Здоровье: +320",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 162,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 10,
+    "name": "Здоровье",
+    "description": "Здоровье: 135",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 163,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 11,
+    "name": "Здоровье",
+    "description": "Здоровье: +150",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 164,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 12,
+    "name": "Здоровье",
+    "description": "Здоровье: +165",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 165,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 13,
+    "name": "Здоровье",
+    "description": "Здоровье: +480",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 166,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 14,
+    "name": "Здоровье",
+    "description": "Здоровье: 175",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 167,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 15,
+    "name": "Здоровье",
+    "description": "Здоровье: 190",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 168,
+  "fields": {
+    "section": "defense",
+    "branch": "2",
+    "order": 16,
+    "name": "Здоровье",
+    "description": "Здоровье: +205",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 169,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 1,
+    "name": "Сниж. крит. урона",
+    "description": "Снижение крит. урона: +3%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 170,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 3,
+    "name": "Сниж. крит. урона",
+    "description": "Снижение крит. урона: +4,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 171,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 5,
+    "name": "Сниж. крит. урона",
+    "description": "Снижение крит. урона: +6,2%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 172,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 7,
+    "name": "Сниж. крит. урона",
+    "description": "Снижение крит. урона: +8%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 173,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 9,
+    "name": "Сниж. крит. урона",
+    "description": "Снижение крит. урона: +9,8%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 174,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 11,
+    "name": "Сниж. крит. урона",
+    "description": "Снижение крит. урона: +11,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 175,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 13,
+    "name": "Сниж. крит. урона",
+    "description": "Снижение крит. урона: +13,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 176,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 15,
+    "name": "Сниж. крит. урона",
+    "description": "Снижение крит. урона: +14,7%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 177,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 4,
+    "name": "Крит. сопротивление",
+    "description": "Снижение крит. шанса: +1,9%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 178,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 6,
+    "name": "Крит. сопротивление",
+    "description": "Снижение крит. шанса: +2,6%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 179,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 2,
+    "name": "Крит. сопротивление",
+    "description": "Снижение крит. шанса: +1,9%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 180,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 8,
+    "name": "Крит. сопротивление",
+    "description": "Снижение крит. шанса: +3,3%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 181,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 10,
+    "name": "Крит. сопротивление",
+    "description": "Снижение крит. шанса: +4%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 182,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 12,
+    "name": "Крит. сопротивление",
+    "description": "Снижение крит. шанса: +4,8%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 183,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 14,
+    "name": "Крит. сопротивление",
+    "description": "Снижение крит. шанса: +5,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 184,
+  "fields": {
+    "section": "resistance",
+    "branch": "1",
+    "order": 16,
+    "name": "Крит. сопротивление",
+    "description": "Снижение крит. шанса: +6%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 185,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 1,
+    "name": "Сниж. похищения жизни",
+    "description": "Сопротивление вампиризму: +2%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 186,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 2,
+    "name": "Сниж. похищения жизни",
+    "description": "Сопротивление вампиризму: +2,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 187,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 3,
+    "name": "Сниж. похищения жизни",
+    "description": "Сопротивление вампиризму: +3%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 188,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 4,
+    "name": "Сниж. похищения жизни",
+    "description": "Сопротивление вампиризму: +3,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 189,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 5,
+    "name": "Здоровье",
+    "description": "Здоровье: +120",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 190,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 6,
+    "name": "Сниж. похищения жизни",
+    "description": "Сопротивление вампиризму: +4%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 191,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 7,
+    "name": "Сниж. похищения жизни",
+    "description": "Сопротивление вампиризму: +4,8%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 192,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 8,
+    "name": "Сниж. похищения жизни",
+    "description": "Сопротивление вампиризму: +5,7%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 193,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 9,
+    "name": "Здоровье",
+    "description": "Здоровье: +240",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 194,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 10,
+    "name": "Снижение отражения",
+    "description": "Сопротивление отражению: +2,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 195,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 11,
+    "name": "Снижение отражения",
+    "description": "Сопротивление отражению: +3%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 196,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 12,
+    "name": "Снижение отражения",
+    "description": "Сопротивление отражению: +3,8%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 197,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 13,
+    "name": "Здоровье",
+    "description": "Здоровье: +360",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 198,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 14,
+    "name": "Снижение отражения",
+    "description": "Сопротивление отражению: +5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 199,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 15,
+    "name": "Снижение отражения",
+    "description": "Сопротивление отражению: +5,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 200,
+  "fields": {
+    "section": "resistance",
+    "branch": "2",
+    "order": 16,
+    "name": "Снижение отражения",
+    "description": "Сопротивление отражению: +5,7%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 201,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 1,
+    "name": "Сопротивление чист. урону",
+    "description": "Снижение чист. шанса: +0,6%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 202,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 3,
+    "name": "Сопротивление чист. урону",
+    "description": "Снижение чист. шанса: +1%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 203,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 5,
+    "name": "Сопротивление чист. урону",
+    "description": "Снижение чист. шанса: +1,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 204,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 7,
+    "name": "Сопротивление чист. урону",
+    "description": "Снижение чист. шанса: +2%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 205,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 9,
+    "name": "Сопротивление чист. урону",
+    "description": "Снижение чист. шанса: +2,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 206,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 11,
+    "name": "Сопротивление чист. урону",
+    "description": "Снижение чист. шанса: +3%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 207,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 13,
+    "name": "Сопротивление чист. урону",
+    "description": "Снижение чист. шанса: +4%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 208,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 15,
+    "name": "Сопротивление чист. урону",
+    "description": "Снижение чист. шанса: +5,6%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 209,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 2,
+    "name": "Снижение чистого урона",
+    "description": "Снижение чист. урона: +1%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 210,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 4,
+    "name": "Снижение чистого урона",
+    "description": "Снижение чист. урона: +2%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 211,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 6,
+    "name": "Снижение чистого урона",
+    "description": "Снижение чист. урона: +2,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 212,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 8,
+    "name": "Снижение чистого урона",
+    "description": "Снижение чист. урона: +3,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 213,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 10,
+    "name": "Снижение чистого урона",
+    "description": "Снижение чист. урона: +4,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 214,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 12,
+    "name": "Снижение чистого урона",
+    "description": "Снижение чист. урона: +5,5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 215,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 14,
+    "name": "Снижение чистого урона",
+    "description": "Снижение чист. урона: +7%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 216,
+  "fields": {
+    "section": "resistance",
+    "branch": "3",
+    "order": 16,
+    "name": "Снижение чистого урона",
+    "description": "Снижение чист. урона: +10%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 217,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 1,
+    "name": "Здоровье",
+    "description": "Здоровье: +20",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 218,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 2,
+    "name": "Здоровье",
+    "description": "Здоровье: +30",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 219,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 3,
+    "name": "Здоровье",
+    "description": "Здоровье: +45",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 220,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 4,
+    "name": "Здоровье",
+    "description": "Здоровье: +60",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 221,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 5,
+    "name": "Здоровье",
+    "description": "Здоровье: +80",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 222,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 6,
+    "name": "Здоровье",
+    "description": "Здоровье: +100",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 223,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 7,
+    "name": "Здоровье",
+    "description": "Здоровье: +120",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 224,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 8,
+    "name": "Здоровье",
+    "description": "Здоровье: +145",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 225,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 9,
+    "name": "Здоровье",
+    "description": "Здоровье: +165",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 226,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 10,
+    "name": "Здоровье",
+    "description": "Здоровье: +190",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 227,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 11,
+    "name": "Здоровье",
+    "description": "Здоровье: +210",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 228,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 12,
+    "name": "Здоровье",
+    "description": "Здоровье: +230",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 229,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 13,
+    "name": "Здоровье",
+    "description": "Здоровье: +250",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 230,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 14,
+    "name": "Здоровье",
+    "description": "Здоровье: +265",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 231,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 15,
+    "name": "Здоровье",
+    "description": "Здоровье: +280",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 232,
+  "fields": {
+    "section": "health",
+    "branch": "1",
+    "order": 16,
+    "name": "Здоровье",
+    "description": "Здоровье: +295",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 233,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 1,
+    "name": "Отражение",
+    "description": "Отражение: +1,8%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 234,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 3,
+    "name": "Отражение",
+    "description": "Отражение: +3%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 235,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 7,
+    "name": "Отражение",
+    "description": "Отражение: +5%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 236,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 11,
+    "name": "Отражение",
+    "description": "Отражение: +7%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 237,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 15,
+    "name": "Отражение",
+    "description": "Отражение: +8%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 238,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 2,
+    "name": "Здоровье",
+    "description": "Здоровье: +35",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 239,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 4,
+    "name": "Здоровье",
+    "description": "Здоровье: +55",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 240,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 5,
+    "name": "Здоровье",
+    "description": "Здоровье: +200",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 241,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 6,
+    "name": "Здоровье",
+    "description": "Здоровье: +85",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 242,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 8,
+    "name": "Здоровье",
+    "description": "Здоровье: +120",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 243,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 9,
+    "name": "Здоровье",
+    "description": "Здоровье: +400",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 244,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 10,
+    "name": "Здоровье",
+    "description": "Здоровье: +165",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 245,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 12,
+    "name": "Здоровье",
+    "description": "Здоровье: +205",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 246,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 13,
+    "name": "Здоровье",
+    "description": "Здоровье: +600",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 247,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 14,
+    "name": "Здоровье",
+    "description": "Здоровье: +245",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 248,
+  "fields": {
+    "section": "health",
+    "branch": "2",
+    "order": 16,
+    "name": "Здоровье",
+    "description": "Здоровье: +275",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 249,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 1,
+    "name": "Здоровье",
+    "description": "Здоровье: +25",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 250,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 2,
+    "name": "Здоровье",
+    "description": "Здоровье: +40",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 251,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 3,
+    "name": "Здоровье",
+    "description": "Здоровье: +55",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 252,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 4,
+    "name": "Здоровье",
+    "description": "Здоровье: +75",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 253,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 5,
+    "name": "Здоровье",
+    "description": "Здоровье: +100",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 254,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 6,
+    "name": "Здоровье",
+    "description": "Здоровье: +120",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 255,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 7,
+    "name": "Здоровье",
+    "description": "Здоровье: +145",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 256,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 8,
+    "name": "Здоровье",
+    "description": "Здоровье: +165",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 257,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 9,
+    "name": "Здоровье",
+    "description": "Здоровье: +185",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 258,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 10,
+    "name": "Здоровье",
+    "description": "Здоровье: +210",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 259,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 11,
+    "name": "Защита",
+    "description": "Защита: +50",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 260,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 12,
+    "name": "Защита",
+    "description": "Защита: +80",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 261,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 13,
+    "name": "Защита",
+    "description": "Защита: +100",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 262,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 14,
+    "name": "Защита",
+    "description": "Защита: +105",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 263,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 15,
+    "name": "Похищение жизни",
+    "description": "Вампиризм: +3%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skillnode",
+  "pk": 264,
+  "fields": {
+    "section": "health",
+    "branch": "3",
+    "order": 16,
+    "name": "Похищение жизни",
+    "description": "Вампиризм: +6%",
+    "max_points": 1,
+    "icon": ""
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 86,
+  "fields": {
+    "from_node": 77,
+    "to_node": 85,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 87,
+  "fields": {
+    "from_node": 84,
+    "to_node": 78,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 88,
+  "fields": {
+    "from_node": 84,
+    "to_node": 92,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 89,
+  "fields": {
+    "from_node": 91,
+    "to_node": 85,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 90,
+  "fields": {
+    "from_node": 73,
+    "to_node": 74,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 91,
+  "fields": {
+    "from_node": 74,
+    "to_node": 75,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 92,
+  "fields": {
+    "from_node": 75,
+    "to_node": 76,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 93,
+  "fields": {
+    "from_node": 76,
+    "to_node": 77,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 94,
+  "fields": {
+    "from_node": 77,
+    "to_node": 78,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 95,
+  "fields": {
+    "from_node": 78,
+    "to_node": 79,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 96,
+  "fields": {
+    "from_node": 80,
+    "to_node": 81,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 97,
+  "fields": {
+    "from_node": 81,
+    "to_node": 82,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 98,
+  "fields": {
+    "from_node": 82,
+    "to_node": 83,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 99,
+  "fields": {
+    "from_node": 83,
+    "to_node": 84,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 100,
+  "fields": {
+    "from_node": 84,
+    "to_node": 85,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 101,
+  "fields": {
+    "from_node": 85,
+    "to_node": 86,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 102,
+  "fields": {
+    "from_node": 87,
+    "to_node": 88,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 103,
+  "fields": {
+    "from_node": 88,
+    "to_node": 89,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 104,
+  "fields": {
+    "from_node": 89,
+    "to_node": 90,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 105,
+  "fields": {
+    "from_node": 90,
+    "to_node": 91,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 106,
+  "fields": {
+    "from_node": 91,
+    "to_node": 92,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 107,
+  "fields": {
+    "from_node": 92,
+    "to_node": 93,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 108,
+  "fields": {
+    "from_node": 79,
+    "to_node": 94,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 109,
+  "fields": {
+    "from_node": 94,
+    "to_node": 95,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 110,
+  "fields": {
+    "from_node": 95,
+    "to_node": 96,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 111,
+  "fields": {
+    "from_node": 96,
+    "to_node": 97,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 112,
+  "fields": {
+    "from_node": 97,
+    "to_node": 98,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 113,
+  "fields": {
+    "from_node": 98,
+    "to_node": 99,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 114,
+  "fields": {
+    "from_node": 99,
+    "to_node": 100,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 115,
+  "fields": {
+    "from_node": 100,
+    "to_node": 101,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 116,
+  "fields": {
+    "from_node": 101,
+    "to_node": 102,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 117,
+  "fields": {
+    "from_node": 119,
+    "to_node": 120,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 118,
+  "fields": {
+    "from_node": 118,
+    "to_node": 119,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 119,
+  "fields": {
+    "from_node": 117,
+    "to_node": 118,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 120,
+  "fields": {
+    "from_node": 116,
+    "to_node": 117,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 121,
+  "fields": {
+    "from_node": 115,
+    "to_node": 116,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 122,
+  "fields": {
+    "from_node": 114,
+    "to_node": 115,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 123,
+  "fields": {
+    "from_node": 113,
+    "to_node": 114,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 124,
+  "fields": {
+    "from_node": 112,
+    "to_node": 113,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 125,
+  "fields": {
+    "from_node": 93,
+    "to_node": 112,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 126,
+  "fields": {
+    "from_node": 86,
+    "to_node": 103,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 127,
+  "fields": {
+    "from_node": 103,
+    "to_node": 104,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 128,
+  "fields": {
+    "from_node": 104,
+    "to_node": 105,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 129,
+  "fields": {
+    "from_node": 105,
+    "to_node": 106,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 130,
+  "fields": {
+    "from_node": 106,
+    "to_node": 107,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 131,
+  "fields": {
+    "from_node": 107,
+    "to_node": 108,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 132,
+  "fields": {
+    "from_node": 108,
+    "to_node": 109,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 133,
+  "fields": {
+    "from_node": 109,
+    "to_node": 110,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 134,
+  "fields": {
+    "from_node": 110,
+    "to_node": 111,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 135,
+  "fields": {
+    "from_node": 95,
+    "to_node": 105,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 136,
+  "fields": {
+    "from_node": 104,
+    "to_node": 96,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 137,
+  "fields": {
+    "from_node": 104,
+    "to_node": 114,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 138,
+  "fields": {
+    "from_node": 113,
+    "to_node": 105,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 139,
+  "fields": {
+    "from_node": 99,
+    "to_node": 109,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 140,
+  "fields": {
+    "from_node": 108,
+    "to_node": 100,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 141,
+  "fields": {
+    "from_node": 108,
+    "to_node": 118,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 142,
+  "fields": {
+    "from_node": 117,
+    "to_node": 109,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 143,
+  "fields": {
+    "from_node": 121,
+    "to_node": 122,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 144,
+  "fields": {
+    "from_node": 122,
+    "to_node": 123,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 145,
+  "fields": {
+    "from_node": 123,
+    "to_node": 124,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 146,
+  "fields": {
+    "from_node": 124,
+    "to_node": 125,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 147,
+  "fields": {
+    "from_node": 125,
+    "to_node": 126,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 148,
+  "fields": {
+    "from_node": 126,
+    "to_node": 127,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 149,
+  "fields": {
+    "from_node": 127,
+    "to_node": 128,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 150,
+  "fields": {
+    "from_node": 128,
+    "to_node": 129,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 151,
+  "fields": {
+    "from_node": 129,
+    "to_node": 130,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 152,
+  "fields": {
+    "from_node": 130,
+    "to_node": 131,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 153,
+  "fields": {
+    "from_node": 132,
+    "to_node": 133,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 154,
+  "fields": {
+    "from_node": 133,
+    "to_node": 134,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 155,
+  "fields": {
+    "from_node": 134,
+    "to_node": 135,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 156,
+  "fields": {
+    "from_node": 135,
+    "to_node": 136,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 157,
+  "fields": {
+    "from_node": 131,
+    "to_node": 132,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 158,
+  "fields": {
+    "from_node": 153,
+    "to_node": 154,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 159,
+  "fields": {
+    "from_node": 154,
+    "to_node": 155,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 160,
+  "fields": {
+    "from_node": 155,
+    "to_node": 156,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 161,
+  "fields": {
+    "from_node": 156,
+    "to_node": 157,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 162,
+  "fields": {
+    "from_node": 157,
+    "to_node": 158,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 163,
+  "fields": {
+    "from_node": 158,
+    "to_node": 159,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 164,
+  "fields": {
+    "from_node": 159,
+    "to_node": 160,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 165,
+  "fields": {
+    "from_node": 160,
+    "to_node": 161,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 166,
+  "fields": {
+    "from_node": 161,
+    "to_node": 162,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 167,
+  "fields": {
+    "from_node": 162,
+    "to_node": 163,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 168,
+  "fields": {
+    "from_node": 163,
+    "to_node": 164,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 169,
+  "fields": {
+    "from_node": 164,
+    "to_node": 165,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 170,
+  "fields": {
+    "from_node": 165,
+    "to_node": 166,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 171,
+  "fields": {
+    "from_node": 166,
+    "to_node": 167,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 172,
+  "fields": {
+    "from_node": 167,
+    "to_node": 168,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 173,
+  "fields": {
+    "from_node": 137,
+    "to_node": 138,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 174,
+  "fields": {
+    "from_node": 138,
+    "to_node": 139,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 175,
+  "fields": {
+    "from_node": 139,
+    "to_node": 140,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 176,
+  "fields": {
+    "from_node": 140,
+    "to_node": 141,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 177,
+  "fields": {
+    "from_node": 141,
+    "to_node": 142,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 178,
+  "fields": {
+    "from_node": 142,
+    "to_node": 143,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 179,
+  "fields": {
+    "from_node": 143,
+    "to_node": 144,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 180,
+  "fields": {
+    "from_node": 144,
+    "to_node": 145,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 181,
+  "fields": {
+    "from_node": 145,
+    "to_node": 146,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 182,
+  "fields": {
+    "from_node": 146,
+    "to_node": 147,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 183,
+  "fields": {
+    "from_node": 147,
+    "to_node": 148,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 184,
+  "fields": {
+    "from_node": 148,
+    "to_node": 149,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 185,
+  "fields": {
+    "from_node": 149,
+    "to_node": 150,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 186,
+  "fields": {
+    "from_node": 150,
+    "to_node": 151,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 187,
+  "fields": {
+    "from_node": 151,
+    "to_node": 152,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 188,
+  "fields": {
+    "from_node": 217,
+    "to_node": 218,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 189,
+  "fields": {
+    "from_node": 218,
+    "to_node": 219,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 190,
+  "fields": {
+    "from_node": 219,
+    "to_node": 220,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 191,
+  "fields": {
+    "from_node": 220,
+    "to_node": 221,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 192,
+  "fields": {
+    "from_node": 221,
+    "to_node": 222,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 193,
+  "fields": {
+    "from_node": 222,
+    "to_node": 223,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 194,
+  "fields": {
+    "from_node": 223,
+    "to_node": 224,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 195,
+  "fields": {
+    "from_node": 224,
+    "to_node": 225,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 196,
+  "fields": {
+    "from_node": 225,
+    "to_node": 226,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 197,
+  "fields": {
+    "from_node": 226,
+    "to_node": 227,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 198,
+  "fields": {
+    "from_node": 227,
+    "to_node": 228,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 199,
+  "fields": {
+    "from_node": 228,
+    "to_node": 229,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 200,
+  "fields": {
+    "from_node": 229,
+    "to_node": 230,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 201,
+  "fields": {
+    "from_node": 230,
+    "to_node": 231,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 202,
+  "fields": {
+    "from_node": 231,
+    "to_node": 232,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 203,
+  "fields": {
+    "from_node": 233,
+    "to_node": 238,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 204,
+  "fields": {
+    "from_node": 238,
+    "to_node": 234,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 205,
+  "fields": {
+    "from_node": 234,
+    "to_node": 239,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 206,
+  "fields": {
+    "from_node": 239,
+    "to_node": 240,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 207,
+  "fields": {
+    "from_node": 240,
+    "to_node": 241,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 208,
+  "fields": {
+    "from_node": 241,
+    "to_node": 235,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 209,
+  "fields": {
+    "from_node": 235,
+    "to_node": 242,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 210,
+  "fields": {
+    "from_node": 242,
+    "to_node": 243,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 211,
+  "fields": {
+    "from_node": 243,
+    "to_node": 244,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 212,
+  "fields": {
+    "from_node": 244,
+    "to_node": 236,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 213,
+  "fields": {
+    "from_node": 236,
+    "to_node": 245,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 214,
+  "fields": {
+    "from_node": 245,
+    "to_node": 246,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 215,
+  "fields": {
+    "from_node": 246,
+    "to_node": 247,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 216,
+  "fields": {
+    "from_node": 247,
+    "to_node": 237,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 217,
+  "fields": {
+    "from_node": 237,
+    "to_node": 248,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 218,
+  "fields": {
+    "from_node": 249,
+    "to_node": 250,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 219,
+  "fields": {
+    "from_node": 250,
+    "to_node": 251,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 220,
+  "fields": {
+    "from_node": 251,
+    "to_node": 252,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 221,
+  "fields": {
+    "from_node": 252,
+    "to_node": 253,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 222,
+  "fields": {
+    "from_node": 253,
+    "to_node": 254,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 223,
+  "fields": {
+    "from_node": 254,
+    "to_node": 255,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 224,
+  "fields": {
+    "from_node": 255,
+    "to_node": 256,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 225,
+  "fields": {
+    "from_node": 256,
+    "to_node": 257,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 226,
+  "fields": {
+    "from_node": 257,
+    "to_node": 258,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 227,
+  "fields": {
+    "from_node": 258,
+    "to_node": 259,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 228,
+  "fields": {
+    "from_node": 259,
+    "to_node": 260,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 229,
+  "fields": {
+    "from_node": 260,
+    "to_node": 261,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 230,
+  "fields": {
+    "from_node": 261,
+    "to_node": 262,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 231,
+  "fields": {
+    "from_node": 262,
+    "to_node": 263,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 232,
+  "fields": {
+    "from_node": 263,
+    "to_node": 264,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 233,
+  "fields": {
+    "from_node": 169,
+    "to_node": 179,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 234,
+  "fields": {
+    "from_node": 179,
+    "to_node": 170,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 235,
+  "fields": {
+    "from_node": 170,
+    "to_node": 177,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 236,
+  "fields": {
+    "from_node": 177,
+    "to_node": 171,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 237,
+  "fields": {
+    "from_node": 171,
+    "to_node": 178,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 238,
+  "fields": {
+    "from_node": 178,
+    "to_node": 172,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 239,
+  "fields": {
+    "from_node": 172,
+    "to_node": 180,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 240,
+  "fields": {
+    "from_node": 180,
+    "to_node": 173,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 241,
+  "fields": {
+    "from_node": 173,
+    "to_node": 181,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 242,
+  "fields": {
+    "from_node": 181,
+    "to_node": 174,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 243,
+  "fields": {
+    "from_node": 174,
+    "to_node": 182,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 244,
+  "fields": {
+    "from_node": 182,
+    "to_node": 175,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 245,
+  "fields": {
+    "from_node": 175,
+    "to_node": 183,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 246,
+  "fields": {
+    "from_node": 183,
+    "to_node": 176,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 247,
+  "fields": {
+    "from_node": 176,
+    "to_node": 184,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 248,
+  "fields": {
+    "from_node": 185,
+    "to_node": 186,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 249,
+  "fields": {
+    "from_node": 186,
+    "to_node": 187,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 250,
+  "fields": {
+    "from_node": 187,
+    "to_node": 188,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 251,
+  "fields": {
+    "from_node": 188,
+    "to_node": 189,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 252,
+  "fields": {
+    "from_node": 189,
+    "to_node": 190,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 253,
+  "fields": {
+    "from_node": 190,
+    "to_node": 191,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 254,
+  "fields": {
+    "from_node": 191,
+    "to_node": 192,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 255,
+  "fields": {
+    "from_node": 192,
+    "to_node": 193,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 256,
+  "fields": {
+    "from_node": 193,
+    "to_node": 194,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 257,
+  "fields": {
+    "from_node": 194,
+    "to_node": 195,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 258,
+  "fields": {
+    "from_node": 195,
+    "to_node": 196,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 259,
+  "fields": {
+    "from_node": 196,
+    "to_node": 197,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 260,
+  "fields": {
+    "from_node": 197,
+    "to_node": 198,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 261,
+  "fields": {
+    "from_node": 198,
+    "to_node": 199,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 262,
+  "fields": {
+    "from_node": 199,
+    "to_node": 200,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 263,
+  "fields": {
+    "from_node": 201,
+    "to_node": 209,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 264,
+  "fields": {
+    "from_node": 209,
+    "to_node": 202,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 265,
+  "fields": {
+    "from_node": 202,
+    "to_node": 210,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 266,
+  "fields": {
+    "from_node": 210,
+    "to_node": 203,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 267,
+  "fields": {
+    "from_node": 203,
+    "to_node": 211,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 268,
+  "fields": {
+    "from_node": 211,
+    "to_node": 204,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 269,
+  "fields": {
+    "from_node": 204,
+    "to_node": 212,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 270,
+  "fields": {
+    "from_node": 212,
+    "to_node": 205,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 271,
+  "fields": {
+    "from_node": 205,
+    "to_node": 213,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 272,
+  "fields": {
+    "from_node": 213,
+    "to_node": 206,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 273,
+  "fields": {
+    "from_node": 206,
+    "to_node": 214,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 274,
+  "fields": {
+    "from_node": 214,
+    "to_node": 207,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 275,
+  "fields": {
+    "from_node": 207,
+    "to_node": 215,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 276,
+  "fields": {
+    "from_node": 215,
+    "to_node": 208,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 277,
+  "fields": {
+    "from_node": 208,
+    "to_node": 216,
+    "edge_type": "vertical"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 278,
+  "fields": {
+    "from_node": 221,
+    "to_node": 241,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 279,
+  "fields": {
+    "from_node": 240,
+    "to_node": 222,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 280,
+  "fields": {
+    "from_node": 240,
+    "to_node": 254,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 281,
+  "fields": {
+    "from_node": 253,
+    "to_node": 241,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 282,
+  "fields": {
+    "from_node": 225,
+    "to_node": 244,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 283,
+  "fields": {
+    "from_node": 243,
+    "to_node": 226,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 284,
+  "fields": {
+    "from_node": 243,
+    "to_node": 258,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 285,
+  "fields": {
+    "from_node": 257,
+    "to_node": 244,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 286,
+  "fields": {
+    "from_node": 229,
+    "to_node": 247,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 287,
+  "fields": {
+    "from_node": 246,
+    "to_node": 230,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 288,
+  "fields": {
+    "from_node": 246,
+    "to_node": 262,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 289,
+  "fields": {
+    "from_node": 261,
+    "to_node": 247,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 290,
+  "fields": {
+    "from_node": 125,
+    "to_node": 158,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 291,
+  "fields": {
+    "from_node": 157,
+    "to_node": 126,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 292,
+  "fields": {
+    "from_node": 157,
+    "to_node": 142,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 293,
+  "fields": {
+    "from_node": 141,
+    "to_node": 158,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 294,
+  "fields": {
+    "from_node": 129,
+    "to_node": 162,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 295,
+  "fields": {
+    "from_node": 161,
+    "to_node": 130,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 296,
+  "fields": {
+    "from_node": 161,
+    "to_node": 146,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 297,
+  "fields": {
+    "from_node": 145,
+    "to_node": 162,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 298,
+  "fields": {
+    "from_node": 133,
+    "to_node": 166,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 299,
+  "fields": {
+    "from_node": 165,
+    "to_node": 134,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 300,
+  "fields": {
+    "from_node": 165,
+    "to_node": 150,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 301,
+  "fields": {
+    "from_node": 149,
+    "to_node": 166,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 302,
+  "fields": {
+    "from_node": 171,
+    "to_node": 190,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 303,
+  "fields": {
+    "from_node": 189,
+    "to_node": 178,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 304,
+  "fields": {
+    "from_node": 189,
+    "to_node": 211,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 305,
+  "fields": {
+    "from_node": 203,
+    "to_node": 190,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 306,
+  "fields": {
+    "from_node": 173,
+    "to_node": 194,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 307,
+  "fields": {
+    "from_node": 193,
+    "to_node": 181,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 308,
+  "fields": {
+    "from_node": 193,
+    "to_node": 213,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 309,
+  "fields": {
+    "from_node": 205,
+    "to_node": 194,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 310,
+  "fields": {
+    "from_node": 175,
+    "to_node": 198,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 311,
+  "fields": {
+    "from_node": 197,
+    "to_node": 183,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 312,
+  "fields": {
+    "from_node": 197,
+    "to_node": 215,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skilledge",
+  "pk": 313,
+  "fields": {
+    "from_node": 207,
+    "to_node": 198,
+    "edge_type": "diagonal"
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 74,
+  "fields": {
+    "node": 73,
+    "stat": 2,
+    "value_level_1": 5.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 75,
+  "fields": {
+    "node": 74,
+    "stat": 2,
+    "value_level_1": 8.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 76,
+  "fields": {
+    "node": 75,
+    "stat": 2,
+    "value_level_1": 10.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 77,
+  "fields": {
+    "node": 76,
+    "stat": 2,
+    "value_level_1": 13.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 78,
+  "fields": {
+    "node": 77,
+    "stat": 2,
+    "value_level_1": 16.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 79,
+  "fields": {
+    "node": 78,
+    "stat": 2,
+    "value_level_1": 18.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 80,
+  "fields": {
+    "node": 79,
+    "stat": 2,
+    "value_level_1": 20.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 81,
+  "fields": {
+    "node": 80,
+    "stat": 5,
+    "value_level_1": 2.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 82,
+  "fields": {
+    "node": 81,
+    "stat": 6,
+    "value_level_1": 2.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 83,
+  "fields": {
+    "node": 82,
+    "stat": 5,
+    "value_level_1": 3.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 84,
+  "fields": {
+    "node": 83,
+    "stat": 6,
+    "value_level_1": 3.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 85,
+  "fields": {
+    "node": 84,
+    "stat": 1,
+    "value_level_1": 100.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 86,
+  "fields": {
+    "node": 85,
+    "stat": 6,
+    "value_level_1": 3.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 87,
+  "fields": {
+    "node": 86,
+    "stat": 5,
+    "value_level_1": 5.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 88,
+  "fields": {
+    "node": 87,
+    "stat": 4,
+    "value_level_1": 1.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 89,
+  "fields": {
+    "node": 88,
+    "stat": 4,
+    "value_level_1": 1.8,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 90,
+  "fields": {
+    "node": 89,
+    "stat": 4,
+    "value_level_1": 2.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 91,
+  "fields": {
+    "node": 90,
+    "stat": 4,
+    "value_level_1": 2.2,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 92,
+  "fields": {
+    "node": 91,
+    "stat": 4,
+    "value_level_1": 2.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 93,
+  "fields": {
+    "node": 92,
+    "stat": 4,
+    "value_level_1": 2.8,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 94,
+  "fields": {
+    "node": 93,
+    "stat": 11,
+    "value_level_1": 2.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 95,
+  "fields": {
+    "node": 94,
+    "stat": 2,
+    "value_level_1": 24.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 96,
+  "fields": {
+    "node": 95,
+    "stat": 2,
+    "value_level_1": 28.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 97,
+  "fields": {
+    "node": 96,
+    "stat": 2,
+    "value_level_1": 32.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 98,
+  "fields": {
+    "node": 97,
+    "stat": 2,
+    "value_level_1": 36.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 99,
+  "fields": {
+    "node": 98,
+    "stat": 2,
+    "value_level_1": 40.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 100,
+  "fields": {
+    "node": 99,
+    "stat": 2,
+    "value_level_1": 45.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 101,
+  "fields": {
+    "node": 100,
+    "stat": 2,
+    "value_level_1": 50.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 102,
+  "fields": {
+    "node": 101,
+    "stat": 2,
+    "value_level_1": 58.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 103,
+  "fields": {
+    "node": 102,
+    "stat": 2,
+    "value_level_1": 68.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 104,
+  "fields": {
+    "node": 103,
+    "stat": 6,
+    "value_level_1": 5.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 105,
+  "fields": {
+    "node": 104,
+    "stat": 1,
+    "value_level_1": 200.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 106,
+  "fields": {
+    "node": 105,
+    "stat": 6,
+    "value_level_1": 5.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 107,
+  "fields": {
+    "node": 106,
+    "stat": 5,
+    "value_level_1": 6.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 108,
+  "fields": {
+    "node": 107,
+    "stat": 6,
+    "value_level_1": 6.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 109,
+  "fields": {
+    "node": 108,
+    "stat": 1,
+    "value_level_1": 300.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 110,
+  "fields": {
+    "node": 109,
+    "stat": 6,
+    "value_level_1": 9.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 111,
+  "fields": {
+    "node": 110,
+    "stat": 5,
+    "value_level_1": 9.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 112,
+  "fields": {
+    "node": 111,
+    "stat": 6,
+    "value_level_1": 13.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 113,
+  "fields": {
+    "node": 112,
+    "stat": 4,
+    "value_level_1": 3.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 114,
+  "fields": {
+    "node": 113,
+    "stat": 4,
+    "value_level_1": 3.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 115,
+  "fields": {
+    "node": 114,
+    "stat": 11,
+    "value_level_1": 3.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 116,
+  "fields": {
+    "node": 115,
+    "stat": 4,
+    "value_level_1": 4.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 117,
+  "fields": {
+    "node": 116,
+    "stat": 4,
+    "value_level_1": 4.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 118,
+  "fields": {
+    "node": 117,
+    "stat": 11,
+    "value_level_1": 6.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 119,
+  "fields": {
+    "node": 118,
+    "stat": 4,
+    "value_level_1": 5.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 120,
+  "fields": {
+    "node": 119,
+    "stat": 4,
+    "value_level_1": 7.7,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 121,
+  "fields": {
+    "node": 120,
+    "stat": 11,
+    "value_level_1": 9.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 122,
+  "fields": {
+    "node": 121,
+    "stat": 3,
+    "value_level_1": 15.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 123,
+  "fields": {
+    "node": 122,
+    "stat": 3,
+    "value_level_1": 20.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 124,
+  "fields": {
+    "node": 123,
+    "stat": 3,
+    "value_level_1": 25.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 125,
+  "fields": {
+    "node": 124,
+    "stat": 3,
+    "value_level_1": 30.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 126,
+  "fields": {
+    "node": 125,
+    "stat": 3,
+    "value_level_1": 35.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 127,
+  "fields": {
+    "node": 126,
+    "stat": 3,
+    "value_level_1": 42.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 128,
+  "fields": {
+    "node": 127,
+    "stat": 3,
+    "value_level_1": 48.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 129,
+  "fields": {
+    "node": 128,
+    "stat": 3,
+    "value_level_1": 56.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 130,
+  "fields": {
+    "node": 129,
+    "stat": 3,
+    "value_level_1": 66.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 131,
+  "fields": {
+    "node": 130,
+    "stat": 3,
+    "value_level_1": 72.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 132,
+  "fields": {
+    "node": 131,
+    "stat": 3,
+    "value_level_1": 82.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 133,
+  "fields": {
+    "node": 132,
+    "stat": 3,
+    "value_level_1": 92.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 134,
+  "fields": {
+    "node": 133,
+    "stat": 3,
+    "value_level_1": 102.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 135,
+  "fields": {
+    "node": 134,
+    "stat": 3,
+    "value_level_1": 112.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 136,
+  "fields": {
+    "node": 135,
+    "stat": 3,
+    "value_level_1": 120.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 137,
+  "fields": {
+    "node": 136,
+    "stat": 3,
+    "value_level_1": 150.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 138,
+  "fields": {
+    "node": 137,
+    "stat": 9,
+    "value_level_1": 1.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 139,
+  "fields": {
+    "node": 138,
+    "stat": 1,
+    "value_level_1": 50.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 140,
+  "fields": {
+    "node": 139,
+    "stat": 9,
+    "value_level_1": 2.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 141,
+  "fields": {
+    "node": 140,
+    "stat": 1,
+    "value_level_1": 70.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 142,
+  "fields": {
+    "node": 141,
+    "stat": 9,
+    "value_level_1": 2.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 143,
+  "fields": {
+    "node": 142,
+    "stat": 1,
+    "value_level_1": 95.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 144,
+  "fields": {
+    "node": 143,
+    "stat": 9,
+    "value_level_1": 2.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 145,
+  "fields": {
+    "node": 144,
+    "stat": 1,
+    "value_level_1": 115.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 146,
+  "fields": {
+    "node": 145,
+    "stat": 9,
+    "value_level_1": 3.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 147,
+  "fields": {
+    "node": 146,
+    "stat": 1,
+    "value_level_1": 135.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 148,
+  "fields": {
+    "node": 147,
+    "stat": 9,
+    "value_level_1": 4.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 149,
+  "fields": {
+    "node": 148,
+    "stat": 1,
+    "value_level_1": 155.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 150,
+  "fields": {
+    "node": 149,
+    "stat": 9,
+    "value_level_1": 5.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 151,
+  "fields": {
+    "node": 150,
+    "stat": 1,
+    "value_level_1": 170.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 152,
+  "fields": {
+    "node": 151,
+    "stat": 9,
+    "value_level_1": 8.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 153,
+  "fields": {
+    "node": 152,
+    "stat": 1,
+    "value_level_1": 186.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 154,
+  "fields": {
+    "node": 153,
+    "stat": 1,
+    "value_level_1": 40.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 155,
+  "fields": {
+    "node": 154,
+    "stat": 1,
+    "value_level_1": 52.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 156,
+  "fields": {
+    "node": 155,
+    "stat": 1,
+    "value_level_1": 60.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 157,
+  "fields": {
+    "node": 156,
+    "stat": 1,
+    "value_level_1": 75.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 158,
+  "fields": {
+    "node": 157,
+    "stat": 1,
+    "value_level_1": 160.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 159,
+  "fields": {
+    "node": 158,
+    "stat": 1,
+    "value_level_1": 100.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 160,
+  "fields": {
+    "node": 159,
+    "stat": 1,
+    "value_level_1": 115.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 161,
+  "fields": {
+    "node": 160,
+    "stat": 1,
+    "value_level_1": 130.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 162,
+  "fields": {
+    "node": 161,
+    "stat": 1,
+    "value_level_1": 320.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 163,
+  "fields": {
+    "node": 162,
+    "stat": 1,
+    "value_level_1": 135.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 164,
+  "fields": {
+    "node": 163,
+    "stat": 1,
+    "value_level_1": 152.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 165,
+  "fields": {
+    "node": 164,
+    "stat": 1,
+    "value_level_1": 165.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 166,
+  "fields": {
+    "node": 165,
+    "stat": 1,
+    "value_level_1": 480.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 167,
+  "fields": {
+    "node": 166,
+    "stat": 1,
+    "value_level_1": 175.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 168,
+  "fields": {
+    "node": 167,
+    "stat": 1,
+    "value_level_1": 191.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 169,
+  "fields": {
+    "node": 168,
+    "stat": 1,
+    "value_level_1": 205.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 170,
+  "fields": {
+    "node": 169,
+    "stat": 14,
+    "value_level_1": 3.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 171,
+  "fields": {
+    "node": 170,
+    "stat": 14,
+    "value_level_1": 4.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 172,
+  "fields": {
+    "node": 171,
+    "stat": 14,
+    "value_level_1": 6.2,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 173,
+  "fields": {
+    "node": 172,
+    "stat": 14,
+    "value_level_1": 8.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 174,
+  "fields": {
+    "node": 173,
+    "stat": 14,
+    "value_level_1": 9.8,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 175,
+  "fields": {
+    "node": 174,
+    "stat": 14,
+    "value_level_1": 11.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 176,
+  "fields": {
+    "node": 175,
+    "stat": 14,
+    "value_level_1": 13.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 177,
+  "fields": {
+    "node": 176,
+    "stat": 14,
+    "value_level_1": 14.7,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 178,
+  "fields": {
+    "node": 177,
+    "stat": 13,
+    "value_level_1": 1.9,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 179,
+  "fields": {
+    "node": 178,
+    "stat": 13,
+    "value_level_1": 2.6,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 180,
+  "fields": {
+    "node": 179,
+    "stat": 13,
+    "value_level_1": 1.2,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 181,
+  "fields": {
+    "node": 180,
+    "stat": 13,
+    "value_level_1": 3.3,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 182,
+  "fields": {
+    "node": 181,
+    "stat": 13,
+    "value_level_1": 4.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 183,
+  "fields": {
+    "node": 182,
+    "stat": 13,
+    "value_level_1": 4.8,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 184,
+  "fields": {
+    "node": 183,
+    "stat": 13,
+    "value_level_1": 5.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 185,
+  "fields": {
+    "node": 184,
+    "stat": 13,
+    "value_level_1": 6.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 186,
+  "fields": {
+    "node": 185,
+    "stat": 12,
+    "value_level_1": 2.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 187,
+  "fields": {
+    "node": 186,
+    "stat": 12,
+    "value_level_1": 2.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 188,
+  "fields": {
+    "node": 187,
+    "stat": 12,
+    "value_level_1": 3.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 189,
+  "fields": {
+    "node": 188,
+    "stat": 12,
+    "value_level_1": 3.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 190,
+  "fields": {
+    "node": 189,
+    "stat": 1,
+    "value_level_1": 120.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 191,
+  "fields": {
+    "node": 190,
+    "stat": 12,
+    "value_level_1": 4.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 192,
+  "fields": {
+    "node": 191,
+    "stat": 12,
+    "value_level_1": 4.8,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 193,
+  "fields": {
+    "node": 192,
+    "stat": 12,
+    "value_level_1": 5.7,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 194,
+  "fields": {
+    "node": 193,
+    "stat": 1,
+    "value_level_1": 240.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 195,
+  "fields": {
+    "node": 194,
+    "stat": 16,
+    "value_level_1": 2.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 196,
+  "fields": {
+    "node": 195,
+    "stat": 16,
+    "value_level_1": 3.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 197,
+  "fields": {
+    "node": 196,
+    "stat": 16,
+    "value_level_1": 3.8,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 198,
+  "fields": {
+    "node": 197,
+    "stat": 1,
+    "value_level_1": 360.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 199,
+  "fields": {
+    "node": 198,
+    "stat": 16,
+    "value_level_1": 5.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 200,
+  "fields": {
+    "node": 199,
+    "stat": 16,
+    "value_level_1": 5.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 201,
+  "fields": {
+    "node": 200,
+    "stat": 16,
+    "value_level_1": 5.7,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 202,
+  "fields": {
+    "node": 201,
+    "stat": 15,
+    "value_level_1": 0.6,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 203,
+  "fields": {
+    "node": 202,
+    "stat": 15,
+    "value_level_1": 1.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 204,
+  "fields": {
+    "node": 203,
+    "stat": 15,
+    "value_level_1": 1.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 205,
+  "fields": {
+    "node": 204,
+    "stat": 15,
+    "value_level_1": 2.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 206,
+  "fields": {
+    "node": 205,
+    "stat": 15,
+    "value_level_1": 2.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 207,
+  "fields": {
+    "node": 206,
+    "stat": 15,
+    "value_level_1": 3.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 208,
+  "fields": {
+    "node": 207,
+    "stat": 15,
+    "value_level_1": 4.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 209,
+  "fields": {
+    "node": 208,
+    "stat": 15,
+    "value_level_1": 5.6,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 210,
+  "fields": {
+    "node": 209,
+    "stat": 17,
+    "value_level_1": 1.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 211,
+  "fields": {
+    "node": 210,
+    "stat": 17,
+    "value_level_1": 2.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 212,
+  "fields": {
+    "node": 211,
+    "stat": 17,
+    "value_level_1": 2.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 213,
+  "fields": {
+    "node": 212,
+    "stat": 17,
+    "value_level_1": 3.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 214,
+  "fields": {
+    "node": 213,
+    "stat": 17,
+    "value_level_1": 4.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 215,
+  "fields": {
+    "node": 214,
+    "stat": 17,
+    "value_level_1": 5.5,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 216,
+  "fields": {
+    "node": 215,
+    "stat": 17,
+    "value_level_1": 7.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 217,
+  "fields": {
+    "node": 216,
+    "stat": 17,
+    "value_level_1": 10.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 218,
+  "fields": {
+    "node": 217,
+    "stat": 1,
+    "value_level_1": 20.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 219,
+  "fields": {
+    "node": 218,
+    "stat": 1,
+    "value_level_1": 30.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 220,
+  "fields": {
+    "node": 219,
+    "stat": 1,
+    "value_level_1": 45.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 221,
+  "fields": {
+    "node": 220,
+    "stat": 1,
+    "value_level_1": 60.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 222,
+  "fields": {
+    "node": 221,
+    "stat": 1,
+    "value_level_1": 80.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 223,
+  "fields": {
+    "node": 222,
+    "stat": 1,
+    "value_level_1": 100.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 224,
+  "fields": {
+    "node": 223,
+    "stat": 1,
+    "value_level_1": 120.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 225,
+  "fields": {
+    "node": 224,
+    "stat": 1,
+    "value_level_1": 145.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 226,
+  "fields": {
+    "node": 225,
+    "stat": 1,
+    "value_level_1": 165.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 227,
+  "fields": {
+    "node": 226,
+    "stat": 1,
+    "value_level_1": 190.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 228,
+  "fields": {
+    "node": 227,
+    "stat": 1,
+    "value_level_1": 210.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 229,
+  "fields": {
+    "node": 228,
+    "stat": 1,
+    "value_level_1": 230.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 230,
+  "fields": {
+    "node": 229,
+    "stat": 1,
+    "value_level_1": 250.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 231,
+  "fields": {
+    "node": 230,
+    "stat": 1,
+    "value_level_1": 265.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 232,
+  "fields": {
+    "node": 231,
+    "stat": 1,
+    "value_level_1": 280.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 233,
+  "fields": {
+    "node": 232,
+    "stat": 1,
+    "value_level_1": 295.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 234,
+  "fields": {
+    "node": 233,
+    "stat": 10,
+    "value_level_1": 1.8,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 235,
+  "fields": {
+    "node": 234,
+    "stat": 10,
+    "value_level_1": 3.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 236,
+  "fields": {
+    "node": 235,
+    "stat": 10,
+    "value_level_1": 5.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 237,
+  "fields": {
+    "node": 236,
+    "stat": 10,
+    "value_level_1": 7.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 238,
+  "fields": {
+    "node": 237,
+    "stat": 10,
+    "value_level_1": 8.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 239,
+  "fields": {
+    "node": 238,
+    "stat": 1,
+    "value_level_1": 35.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 240,
+  "fields": {
+    "node": 239,
+    "stat": 1,
+    "value_level_1": 55.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 241,
+  "fields": {
+    "node": 240,
+    "stat": 1,
+    "value_level_1": 200.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 242,
+  "fields": {
+    "node": 241,
+    "stat": 1,
+    "value_level_1": 85.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 243,
+  "fields": {
+    "node": 242,
+    "stat": 1,
+    "value_level_1": 120.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 244,
+  "fields": {
+    "node": 243,
+    "stat": 1,
+    "value_level_1": 400.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 245,
+  "fields": {
+    "node": 244,
+    "stat": 1,
+    "value_level_1": 165.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 246,
+  "fields": {
+    "node": 245,
+    "stat": 1,
+    "value_level_1": 205.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 247,
+  "fields": {
+    "node": 246,
+    "stat": 1,
+    "value_level_1": 600.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 248,
+  "fields": {
+    "node": 247,
+    "stat": 1,
+    "value_level_1": 245.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 249,
+  "fields": {
+    "node": 248,
+    "stat": 1,
+    "value_level_1": 275.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 250,
+  "fields": {
+    "node": 249,
+    "stat": 1,
+    "value_level_1": 25.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 251,
+  "fields": {
+    "node": 250,
+    "stat": 1,
+    "value_level_1": 40.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 252,
+  "fields": {
+    "node": 251,
+    "stat": 1,
+    "value_level_1": 55.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 253,
+  "fields": {
+    "node": 252,
+    "stat": 1,
+    "value_level_1": 75.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 254,
+  "fields": {
+    "node": 253,
+    "stat": 1,
+    "value_level_1": 100.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 255,
+  "fields": {
+    "node": 254,
+    "stat": 1,
+    "value_level_1": 120.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 256,
+  "fields": {
+    "node": 255,
+    "stat": 1,
+    "value_level_1": 145.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 257,
+  "fields": {
+    "node": 256,
+    "stat": 1,
+    "value_level_1": 165.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 258,
+  "fields": {
+    "node": 257,
+    "stat": 1,
+    "value_level_1": 185.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 259,
+  "fields": {
+    "node": 258,
+    "stat": 1,
+    "value_level_1": 210.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 260,
+  "fields": {
+    "node": 259,
+    "stat": 3,
+    "value_level_1": 50.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 261,
+  "fields": {
+    "node": 260,
+    "stat": 3,
+    "value_level_1": 80.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 262,
+  "fields": {
+    "node": 261,
+    "stat": 3,
+    "value_level_1": 100.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 263,
+  "fields": {
+    "node": 262,
+    "stat": 3,
+    "value_level_1": 105.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 264,
+  "fields": {
+    "node": 263,
+    "stat": 11,
+    "value_level_1": 3.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+},
+{
+  "model": "skills.skillbonus",
+  "pk": 265,
+  "fields": {
+    "node": 264,
+    "stat": 11,
+    "value_level_1": 6.0,
+    "value_level_2": null,
+    "value_level_3": null
+  }
+}
+]
