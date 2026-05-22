@@ -105,7 +105,8 @@ def _render_index(request):
         slot = int(request.GET.get('slot', 0))
         slot = max(0, min(slot, settings.DOLL_SLOTS_PER_USER - 1))
         doll = _get_user_doll(request, slot)
-        user_dolls = Doll.objects.filter(owner=request.user).order_by('slot_order')
+        user_dolls = Doll.objects.filter(
+            owner=request.user).order_by('slot_order')
     else:
         doll = _get_or_create_session_doll(request)
         user_dolls = []
@@ -131,6 +132,11 @@ def doll_public(request, uuid):
     return _render_index(request)
 
 
+def guide(request):
+    """Страница с руководством по калькулятору."""
+    return render(request, 'calculator/guide.html')
+
+
 @require_POST
 def api_select_item(request):
     """API: выбрать предмет в слот. Копирует базовые статы как кастомные."""
@@ -151,7 +157,8 @@ def api_select_item(request):
             doll_slot.custom_stats.all().delete()
         doll_slot.item = item
         doll_slot.save()
-        existing_stat_ids = set(doll_slot.custom_stats.values_list('stat_id', flat=True))
+        existing_stat_ids = set(
+            doll_slot.custom_stats.values_list('stat_id', flat=True))
         for item_stat in item.stats.select_related('stat').all():
             if item_stat.stat_id not in existing_stat_ids:
                 DollSlotStat.objects.create(
@@ -338,7 +345,8 @@ def api_equip_set(request):
 
     equipped = []
     for item in item_set.items.filter(is_active=True):
-        doll_slot = DollSlot.objects.filter(doll=doll, slot_type=item.slot_type).first()
+        doll_slot = DollSlot.objects.filter(
+            doll=doll, slot_type=item.slot_type).first()
         if not doll_slot:
             continue
         doll_slot.item = item
@@ -373,7 +381,8 @@ def api_get_item_stats(request):
     item_id = data.get('item_id')
     from catalog.models import Item
     item = get_object_or_404(Item, pk=item_id)
-    stats = {s.stat.slug: s.base_value for s in item.stats.select_related('stat').all()}
+    stats = {
+        s.stat.slug: s.base_value for s in item.stats.select_related('stat').all()}
     return JsonResponse({
         'ok': True,
         'item_name': item.name,
@@ -435,16 +444,19 @@ def api_copy_to_comparison(request):
     target.save(update_fields=['character_level'])
 
     for src_slot in source.slots.select_related('item').prefetch_related('custom_stats__stat').all():
-        tgt_slot, _ = DollSlot.objects.get_or_create(doll=target, slot_type=src_slot.slot_type)
+        tgt_slot, _ = DollSlot.objects.get_or_create(
+            doll=target, slot_type=src_slot.slot_type)
         tgt_slot.item = src_slot.item
         tgt_slot.save(update_fields=['item'])
         tgt_slot.custom_stats.all().delete()
         for cs in src_slot.custom_stats.all():
-            DollSlotStat.objects.create(doll_slot=tgt_slot, stat=cs.stat, value=cs.value)
+            DollSlotStat.objects.create(
+                doll_slot=tgt_slot, stat=cs.stat, value=cs.value)
 
     target.skill_points.all().delete()
     for sp in source.skill_points.all():
-        DollSkill.objects.create(doll=target, node=sp.node, points_invested=sp.points_invested)
+        DollSkill.objects.create(
+            doll=target, node=sp.node, points_invested=sp.points_invested)
 
     save_stats_snapshot(target)
     fresh = Doll.objects.get(pk=target.pk)
@@ -458,7 +470,8 @@ def api_copy_to_comparison(request):
             'image_url': ds.item.image.url if ds.item and ds.item.image and ds.item.image.name else None,
         }
 
-    invested_map = {ds.node_id: ds.points_invested for ds in fresh.skill_points.all()}
+    invested_map = {
+        ds.node_id: ds.points_invested for ds in fresh.skill_points.all()}
 
     return JsonResponse({
         'ok': True,
@@ -483,7 +496,8 @@ def api_copy_doll(request):
     target, created = Doll.objects.get_or_create(
         owner=request.user,
         slot_order=slot_order,
-        defaults={'name': source.name if source.name != '__temp__' else 'Кукла ' + str(slot_order + 1)},
+        defaults={'name': source.name if source.name !=
+                  '__temp__' else 'Кукла ' + str(slot_order + 1)},
     )
     if not created:
         target.name = source.name if source.name != '__temp__' else target.name
@@ -495,16 +509,19 @@ def api_copy_doll(request):
             DollSlot.objects.create(doll=target, slot_type=slot_type)
 
     for src_slot in source.slots.select_related('item').prefetch_related('custom_stats__stat').all():
-        tgt_slot, _ = DollSlot.objects.get_or_create(doll=target, slot_type=src_slot.slot_type)
+        tgt_slot, _ = DollSlot.objects.get_or_create(
+            doll=target, slot_type=src_slot.slot_type)
         tgt_slot.item = src_slot.item
         tgt_slot.save()
         tgt_slot.custom_stats.all().delete()
         for cs in src_slot.custom_stats.all():
-            DollSlotStat.objects.create(doll_slot=tgt_slot, stat=cs.stat, value=cs.value)
+            DollSlotStat.objects.create(
+                doll_slot=tgt_slot, stat=cs.stat, value=cs.value)
 
     target.skill_points.all().delete()
     for sp in source.skill_points.all():
-        DollSkill.objects.create(doll=target, node=sp.node, points_invested=sp.points_invested)
+        DollSkill.objects.create(
+            doll=target, node=sp.node, points_invested=sp.points_invested)
 
     target.character_level = source.character_level
     save_stats_snapshot(target)

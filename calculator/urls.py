@@ -5,6 +5,7 @@ app_name = 'calculator'
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('guide/', views.guide, name='guide'),
     path('share/<uuid:uuid>/', views.doll_public, name='doll_public'),
     path('api/slot/select/', views.api_select_item, name='api_select_item'),
     path('api/slot/stats/', views.api_get_slot_stats, name='api_get_slot_stats'),

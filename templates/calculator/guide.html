@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}GKCalc — Руководство{% endblock %}
+
+{% block content %}
+<div style="max-width:720px;margin:0 auto;padding:24px 16px;">
+
+  <div style="margin-bottom:24px;">
+    <h1 style="font-size:1.3rem;font-weight:700;color:var(--accent);margin-bottom:6px;">
+      🎮 GKCalc — Руководство
+    </h1>
+    <p style="font-size:0.85rem;color:var(--text-muted);">
+      <a href="{% url 'calculator:index' %}" style="color:var(--accent);text-decoration:none;">← Вернуться к калькулятору</a>
+    </p>
+  </div>
+
+  <div style="font-size:0.88rem;color:var(--text-secondary);line-height:1.75;">
+
+    <!-- Три колонки -->
+    <div class="gkc-card" style="margin-bottom:16px;">
+      <div class="gkc-card-title" style="color:var(--accent);">📊 Три колонки — три раздела</div>
+      <p><strong style="color:var(--text-primary);">Левая — Мощь и Сопротивление.</strong>
+        Итоговые статы персонажа. Если корректно введены статы вещей и навыков — цифры должны совпадать с игрой.
+        Ниже статов отображаются активные <strong>Эффекты</strong> — от надетого духа-хранителя или собранного сета.</p>
+      <p><strong style="color:var(--text-primary);">Центральная — Персонаж и снаряжение.</strong>
+        7 слотов вокруг персонажа: основное оружие, дополнительное оружие, шлем, броня, усилитель, аксессуар и дух-хранитель.
+        Под персонажем — аккордеон с каталогом всех сетов и предметов, разбитый по редкости (Legendary, Limited, Epic и т.д.).</p>
+      <p>Кнопка <strong>«📊 Подробно»</strong> рядом с названием куклы открывает таблицу с разбивкой каждого стата по источникам:
+        база, вещи, сеты, навыки и итого. Удобно чтобы понять откуда берётся каждая цифра.</p>
+      <p><strong style="color:var(--text-primary);">Правая — Дерево навыков.</strong>
+        Четыре раздела: Атака, Защита, Здоровье, Сопротивление. Прокачивайте узлы и сразу увидите изменение статов.</p>
+    </div>
+
+    <!-- Снаряжение -->
+    <div class="gkc-card" style="margin-bottom:16px;">
+      <div class="gkc-card-title" style="color:var(--accent);">⚔️ Снаряжение</div>
+      <p><strong style="color:var(--text-primary);">Надеть предмет</strong> — кликните на любой слот, выберите предмет из списка и нажмите «Надеть».</p>
+      <p><strong style="color:var(--text-primary);">Надеть сет целиком</strong> — раскройте нужную секцию в аккордеоне под персонажем и нажмите
+        <strong>«⚔ Надеть сет»</strong> — все предметы сета наденутся одним кликом.</p>
+      <p><strong style="color:var(--text-primary);">Надеть один предмет из сета</strong> — кликните на иконку конкретного предмета в аккордеоне.</p>
+      <p><strong style="color:var(--text-primary);">Редактировать статы вещи</strong> — кликните на надетую вещь. Откроется окно с её статами,
+        где можно изменить любое значение вручную. Статы духа-хранителя генерируются случайно — добавляйте их самостоятельно
+        через кнопку «+» в окне редактирования. После изменений нажмите «Сохранить».</p>
+      <div style="background:var(--bg-secondary);border-left:3px solid var(--accent);padding:8px 12px;
+                  border-radius:0 4px 4px 0;font-size:0.82rem;color:var(--text-muted);">
+        Рядом с изменёнными статами отображается процент отклонения от базового значения —
+        зелёным если выше, красным если ниже.
+      </div>
+    </div>
+
+    <!-- Навыки -->
+    <div class="gkc-card" style="margin-bottom:16px;">
+      <div class="gkc-card-title" style="color:var(--accent);">📚 Навыки</div>
+      <p>Кликайте на узлы дерева навыков для прокачки. Доступные очки зависят от уровня персонажа —
+        установите его в поле «Ур.» в центральной колонке.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0;">
+        <div style="background:var(--bg-secondary);border-radius:6px;padding:10px 12px;">
+          <div style="font-size:0.78rem;font-weight:600;color:var(--text-primary);margin-bottom:6px;">🖥️ Десктоп</div>
+          <div style="font-size:0.82rem;">ЛКМ — добавить очко</div>
+          <div style="font-size:0.82rem;">ПКМ — откатить очко</div>
+        </div>
+        <div style="background:var(--bg-secondary);border-radius:6px;padding:10px 12px;">
+          <div style="font-size:0.78rem;font-weight:600;color:var(--text-primary);margin-bottom:6px;">📱 Мобильный</div>
+          <div style="font-size:0.82rem;">Тап — добавить очко</div>
+          <div style="font-size:0.82rem;">Тап на заполненном — сбросить до нуля</div>
+        </div>
+      </div>
+      <p>Кнопка <strong>«↺ Сброс»</strong> сбрасывает все навыки сразу.</p>
+    </div>
+
+    <!-- Регистрация -->
+    <div class="gkc-card" style="margin-bottom:16px;">
+      <div class="gkc-card-title" style="color:var(--accent);">👤 Преимущества регистрации</div>
+      <p>Без регистрации калькулятор полностью работает, но билд не сохраняется после закрытия браузера.</p>
+      <p>После регистрации по e-mail вы получаете:</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-size:1rem;">💾</span>
+          <div><strong style="color:var(--text-primary);">Сохранить</strong> — сохраняет текущий билд в один из трёх слотов.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-size:1rem;">📂</span>
+          <div><strong style="color:var(--text-primary);">Загрузить</strong> — откатывает к последнему сохранённому состоянию.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-size:1rem;">🔗</span>
+          <div><strong style="color:var(--text-primary);">Ссылка</strong> — создаёт постоянную ссылку на билд в момент нажатия.
+            Поделитесь с другими игроками — они увидят именно этот билд, даже если вы потом его измените.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Сравнение -->
+    <div class="gkc-card" style="margin-bottom:16px;">
+      <div class="gkc-card-title" style="color:var(--accent);">🖥️ Только на десктопе — Сравнение билдов</div>
+      <p>Нажмите кнопку <strong>«⚖ СРАВНИТЬ»</strong> в правой части экрана — откроется вторая кукла персонажа.
+        Оденьте её и распределите навыки.</p>
+      <p>В колонке Мощь правой куклы статы подсвечиваются относительно основной:</p>
+      <div style="display:flex;flex-direction:column;gap:4px;margin:8px 0 12px;font-size:0.83rem;">
+        <div>🟢 <strong style="color:#22c55e;">Зелёный</strong> — стат выше, чем у основной куклы</div>
+        <div>🔴 <strong style="color:#ef4444;">Красный</strong> — стат ниже</div>
+        <div style="color:var(--text-muted);">Рядом показывается процент разницы</div>
+      </div>
+      <p>Кнопка <strong>«📋 КОПИРОВАТЬ»</strong> появляется когда кукла сравнения открыта — копирует весь билд
+        основной куклы во вторую одним кликом. Удобно для сравнения «было vs стало»: скопировали текущий билд,
+        затем меняете что-то во второй кукле и сразу видите разницу в статах.</p>
+    </div>
+
+    <!-- Мобильная -->
+    <div class="gkc-card" style="margin-bottom:24px;">
+      <div class="gkc-card-title" style="color:var(--accent);">📱 Мобильная версия</div>
+      <p>На телефоне дерево навыков скрыто — открывается кнопкой <strong>«📚 Навыки»</strong> вверху экрана.
+        Повторное нажатие закрывает его.</p>
+      <p>Функция сравнения на мобильном недоступна — две куклы на узком экране нечитаемы.</p>
+    </div>
+
+    <div style="text-align:center;font-size:0.8rem;color:var(--text-muted);padding-bottom:16px;">      
+      <p>При нахождении багов, неточностей в вещах или сетах - контакты внизу страницы.</p>
+      <p>gkcalc.online — считайте билды, а не тратьте ресурсы вслепую 🎯</p>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
