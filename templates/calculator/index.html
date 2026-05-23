@@ -336,7 +336,7 @@
 
         <div class="equip-layout">
           <div class="equip-col">
-            {% for st, label in slot_types %}{% if forloop.counter <= 3 %}
+            {% for st, label in slot_types %}{% if st == 'main_weapon' or st == 'helmet' or st == 'armor' %}
             <div class="item-slot" id="comp-slot-{{ st }}"
                  onclick="compOpenSlot('{{ st }}', '{{ label }}')" title="{{ label }}">
               <div class="item-slot-name" id="comp-slot-label-{{ st }}">{{ label }}</div>
@@ -351,7 +351,7 @@
             <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Сравнение</div>
           </div>
           <div class="equip-col">
-            {% for st, label in slot_types %}{% if forloop.counter > 3 and st != 'guardian' and st != 'accessory' %}
+            {% for st, label in slot_types %}{% if st == 'off_weapon' or st == 'amplifier' %}
             <div class="item-slot" id="comp-slot-{{ st }}"
                  onclick="compOpenSlot('{{ st }}', '{{ label }}')" title="{{ label }}">
               <div class="item-slot-name" id="comp-slot-label-{{ st }}">{{ label }}</div>
