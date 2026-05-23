@@ -289,6 +289,17 @@
                  padding:10px 5px;cursor:pointer;z-index:100;letter-spacing:1px;
                  transition:all 0.2s;">📋 КОПИРОВАТЬ</button>
 
+  <!-- Кнопка симуляции — только для премиум, только когда кукла сравнения открыта -->
+  {% if user.is_premium %}
+  <button id="comp-battle-btn" onclick="openBattleSimulation()"
+          style="display:none;pointer-events:all;position:absolute;left:-20px;top:calc(50% + 220px);
+                 transform:translateY(-50%);background:var(--bg-card);
+                 border:1px solid #f59e0b;border-radius:6px 0 0 6px;
+                 color:#f59e0b;font-size:0.65rem;writing-mode:vertical-rl;
+                 padding:10px 5px;cursor:pointer;z-index:100;letter-spacing:1px;
+                 transition:all 0.2s;">⚔ БОЙ</button>
+  {% endif %}
+
   <!-- Содержимое куклы сравнения -->
   <div id="comp-doll" style="display:none;pointer-events:all;width:100%;height:100%;
                               background:var(--bg-primary);border-left:2px solid var(--border-bright);
@@ -531,6 +542,19 @@
     </div>
     <div id="detailed-stats-content">
       <div style="color:var(--text-muted);font-size:0.8rem;text-align:center;">Загрузка...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Модалка симуляции боя -->
+<div id="battle-modal" class="gkc-modal-backdrop" style="display:none;" onclick="closeBattleModal(event)">
+  <div class="gkc-modal" onclick="event.stopPropagation()" style="min-width:400px;max-width:600px;max-height:85vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="gkc-modal-title">⚔ Симуляция боя</div>
+      <button class="btn-gkc btn-gkc-outline" style="font-size:0.7rem;padding:3px 8px;" onclick="closeBattleModal()">✕</button>
+    </div>
+    <div id="battle-modal-content">
+      <div style="color:var(--text-muted);font-size:0.8rem;text-align:center;padding:20px;">Загрузка...</div>
     </div>
   </div>
 </div>
@@ -1326,6 +1350,11 @@ async function toggleComparison() {
       btn.style.color = 'var(--accent)';
       btn.style.borderColor = 'var(--accent)';
       copyBtn.style.display = 'block';
+      const battleBtn = document.getElementById('comp-battle-btn');
+      if (battleBtn) battleBtn.style.display = 'block';
+
+
+
 
       requestAnimationFrame(() => {
         compRenderStats(res.stats);
@@ -1339,6 +1368,8 @@ async function toggleComparison() {
     btn.style.color = 'var(--text-secondary)';
     btn.style.borderColor = 'var(--border-bright)';
     copyBtn.style.display = 'none';
+    const battleBtn2 = document.getElementById('comp-battle-btn');
+    if (battleBtn2) battleBtn2.style.display = 'none';
   }
 }
 
@@ -1769,5 +1800,69 @@ async function compEquipSet(setId) {
   }
 }
 
+// ─── Симуляция боя ───
+async function openBattleSimulation() {
+  const modal = document.getElementById('battle-modal');
+  modal.style.display = 'flex';
+  document.getElementById('battle-modal-content').innerHTML =
+    '<div style="color:var(--text-muted);font-size:0.8rem;text-align:center;padding:20px;">⚔ Симулируем бои...</div>';
+
+  const res = await gkcPost("{% url 'battle:api_simulate' %}", {
+    doll_a_id: DOLL_ID,
+    doll_b_id: COMP_DOLL_ID,
+    rounds: 10,
+  });
+
+  if (!res.ok) {
+    document.getElementById('battle-modal-content').innerHTML =
+      `<div style="color:#ef4444;text-align:center;padding:20px;">${res.error || 'Ошибка симуляции'}</div>`;
+    return;
+  }
+
+  const winColor = res.wins_a >= res.wins_b ? '#22c55e' : '#ef4444';
+  const verdict = res.wins_a > res.wins_b ? '🏆 Ваша кукла побеждает!' :
+                  res.wins_a < res.wins_b ? '💀 Кукла сравнения побеждает' :
+                  '🤝 Ничья';
+
+  let logHtml = res.log.map(b => {
+    const winner = b.winner === 'a' ? '🟢 Ваша' : b.winner === 'b' ? '🔴 Сравнение' : '⚪ Ничья';
+    return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:0.72rem;">
+      <span style="color:var(--text-muted);">Бой ${b.battle}</span>
+      <span>${winner}</span>
+      <span style="color:var(--text-muted);">HP: ${b.hp_a_left} / ${b.hp_b_left}</span>
+      <span style="color:var(--text-muted);">${b.turns} ходов</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('battle-modal-content').innerHTML = `
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:1.1rem;font-weight:700;color:${winColor};margin-bottom:4px;">${verdict}</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);">Из 10 боёв</div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:32px;margin-bottom:16px;">
+      <div style="text-align:center;">
+        <div style="font-size:1.5rem;font-weight:700;color:#22c55e;">${res.wins_a}</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);">Ваша</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:1.5rem;font-weight:700;color:var(--text-muted);">${res.draws}</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);">Ничьих</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:1.5rem;font-weight:700;color:#ef4444;">${res.wins_b}</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);">Сравнение</div>
+      </div>
+    </div>
+    <div style="margin-bottom:8px;font-size:0.72rem;font-weight:600;color:var(--text-muted);">Детали боёв:</div>
+    ${logHtml}
+    <div style="margin-top:12px;text-align:center;">
+      <button class="btn-gkc" style="font-size:0.75rem;padding:6px 16px;" onclick="openBattleSimulation()">🔄 Повторить</button>
+    </div>`;
+}
+
+function closeBattleModal(e) {
+  if (e && e.target !== document.getElementById('battle-modal')) return;
+  document.getElementById('battle-modal').style.display = 'none';
+}
 </script>
 {% endblock %}

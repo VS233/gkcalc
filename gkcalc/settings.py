@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'catalog',
     'calculator',
     'skills',
+    'battle',
 ]
 
 MIDDLEWARE = [
@@ -93,7 +94,7 @@ BASE_CHARACTER_STATS = {
     'health':      100,
     'attack':      12,
     'defense':     2,
-    'accuracy':    100,
+    'accuracy':    0,
     'crit_chance': 5,
     'crit_damage': 125,
     'pure_chance': 0,
@@ -141,6 +142,11 @@ LOGGING = {
             'propagate': True,
         },
         'calculator': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'battle': {
             'handlers': ['file', 'console'],
             'level': 'ERROR',
             'propagate': False,

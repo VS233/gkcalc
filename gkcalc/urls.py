@@ -13,6 +13,7 @@ urlpatterns = [
     path('', include('calculator.urls')),
     path('catalog/', include('catalog.urls')),
     path('skills/', include('skills.urls')),
+    path('battle/', include('battle.urls')),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
 ]
 

@@ -26,6 +26,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=64, blank=True, verbose_name='Никнейм')
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    is_premium = models.BooleanField(default=False, verbose_name='Премиум')
+    premium_until = models.DateTimeField(null=True, blank=True, verbose_name='Премиум до')
     date_joined = models.DateTimeField(default=timezone.now)
 
     objects = UserManager()

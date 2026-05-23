@@ -23,6 +23,12 @@
   {% if user.is_authenticated %}
     <span style="font-size:0.8rem;color:var(--text-secondary)">{{ user.email }}</span>
     <a href="{% url 'accounts:logout' %}" style="font-size:0.75rem;color:var(--text-muted);text-decoration:none;">Выйти</a>
+    {% if user.is_premium %}
+      <span style="font-size:0.75rem;color:#f59e0b;font-weight:600;">⚔ Премиум</span>
+    {% else %}
+      <span style="font-size:0.75rem;color:var(--text-muted);cursor:default;"
+            title="Симуляция боёв — Премиум функция">🔒 Премиум</span>
+    {% endif %}
   {% else %}
     <a href="{% url 'accounts:login' %}" style="font-size:0.75rem;color:var(--text-secondary);text-decoration:none;">Войти</a>
     <a href="{% url 'accounts:register' %}" style="font-size:0.75rem;color:var(--accent);text-decoration:none;">Регистрация</a>

@@ -5,11 +5,13 @@ from .models import User
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ['email', 'username', 'is_staff', 'date_joined']
+    list_display = ['email', 'username', 'is_premium', 'is_staff', 'date_joined']
+    list_editable = ['is_premium']
     ordering = ['-date_joined']
-    fieldsets = (
+    fieldsets = (        
         (None, {'fields': ('email', 'password')}),
         ('Личные данные', {'fields': ('username',)}),
+        ('Премиум', {'fields': ('is_premium', 'premium_until')}),
         ('Права', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
     )
     add_fieldsets = (
