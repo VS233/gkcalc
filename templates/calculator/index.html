@@ -810,7 +810,7 @@ function renderEditView(res) {
         <input type="number" id="guardian-stat-value" min="0" step="0.01" placeholder="0"
                style="width:70px;background:var(--bg-secondary);border:1px solid var(--border);
                       border-radius:4px;color:var(--text-primary);padding:4px 6px;font-size:0.78rem;">
-        <button class="btn-gkc" style="font-size:0.7rem;padding:4px 8px;" onclick="addGuardianStat()">+</button>`;
+        <button class="btn-gkc" style="font-size:0.7rem;padding:4px 8px;" onclick="addGuardianStat('')">+</button>`;
     } else {
       addRow.innerHTML = '<span style="font-size:0.72rem;color:var(--text-muted);">Все статы добавлены</span>';
     }
@@ -843,20 +843,18 @@ function buildStatRow(statId, statName, isPercent, customValue, baseValue, diffP
   return div;
 }
 
-function addGuardianStat() {
-  const sel = document.getElementById('guardian-stat-select');
-  const valInput = document.getElementById('guardian-stat-value');
+function addGuardianStat(prefix) {
+  prefix = prefix || '';
+  const sel = document.getElementById(prefix + 'guardian-stat-select');
+  const valInput = document.getElementById(prefix + 'guardian-stat-value');
   const statId = parseInt(sel.value);
   const value = parseFloat(valInput.value) || 0;
   if (!statId) { showToast('Выберите стат'); return; }
-
   const statName = sel.options[sel.selectedIndex].text;
   const isPct = sel.options[sel.selectedIndex].dataset.percent === 'True';
-
-  const list = document.getElementById('modal-stats-list');
-  const addRow = document.getElementById('guardian-add-row');
+  const list = document.getElementById(prefix + 'modal-stats-list');
+  const addRow = document.getElementById(prefix + 'guardian-add-row');
   list.insertBefore(buildStatRow(statId, statName, isPct, value, 0, null), addRow);
-
   sel.options[sel.selectedIndex].remove();
   valInput.value = '';
   if (sel.options.length <= 1) {
@@ -1581,6 +1579,26 @@ function compRenderEditView(res) {
   res.slot_stats.forEach(s => {
     list.appendChild(buildStatRow(s.stat_id, s.stat_name, s.is_percent, s.custom_value, s.base_value, s.diff_pct));
   });
+  if (compActiveSlot === GUARDIAN_SLOT) {
+    const addRow = document.createElement('div');
+    addRow.id = 'comp-guardian-add-row';
+    addRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);';
+    const existingIds = new Set(res.slot_stats.map(s => s.stat_id));
+    const available = ALL_STATS.filter(s => !existingIds.has(s.id));
+    if (available.length > 0) {
+      addRow.innerHTML = `
+        <select id="comp-guardian-stat-select" style="flex:1;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);padding:4px 6px;font-size:0.78rem;">
+          <option value="">— выбрать стат —</option>
+          ${available.map(s => `<option value="${s.id}" data-percent="${s.is_percent}">${s.name_ru}</option>`).join('')}
+        </select>
+        <input type="number" id="comp-guardian-stat-value" min="0" step="0.01" placeholder="0"
+               style="width:70px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);padding:4px 6px;font-size:0.78rem;">
+        <button class="btn-gkc" style="font-size:0.7rem;padding:4px 8px;" onclick="addGuardianStat('comp-')">+</button>`;
+    } else {
+      addRow.innerHTML = '<span style="font-size:0.72rem;color:var(--text-muted);">Все статы добавлены</span>';
+    }
+    list.appendChild(addRow);
+  }
 }
 
 async function compApplyItem(remove) {
