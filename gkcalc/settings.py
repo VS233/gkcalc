@@ -94,7 +94,7 @@ BASE_CHARACTER_STATS = {
     'health':      100,
     'attack':      12,
     'defense':     2,
-    'accuracy':    0,
+    'accuracy':    100,
     'crit_chance': 5,
     'crit_damage': 125,
     'pure_chance': 0,

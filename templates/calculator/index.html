@@ -924,6 +924,7 @@ function updateSlotDOM(slotType, itemName, rarity, imageUrl) {
 function clearSlotDOM(slotType, defaultLabel) {
   const slots = document.querySelectorAll('.item-slot');
   slots.forEach(el => {
+    if (el.id && el.id.startsWith('comp-')) return;
     if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(`'${slotType}'`)) {
       el.style.borderColor = '';
       el.style.background = '';
@@ -1826,9 +1827,7 @@ async function openBattleSimulation() {
     '<div style="color:var(--text-muted);font-size:0.8rem;text-align:center;padding:20px;">⚔ Симулируем бои...</div>';
 
   const res = await gkcPost("{% url 'battle:api_simulate' %}", {
-    doll_a_id: DOLL_ID,
-    doll_b_id: COMP_DOLL_ID,
-    rounds: 10,
+    doll_a_id: DOLL_ID, doll_b_id: COMP_DOLL_ID, rounds: 10,
   });
 
   if (!res.ok) {
@@ -1839,16 +1838,37 @@ async function openBattleSimulation() {
 
   const winColor = res.wins_a >= res.wins_b ? '#22c55e' : '#ef4444';
   const verdict = res.wins_a > res.wins_b ? '🏆 Ваша кукла побеждает!' :
-                  res.wins_a < res.wins_b ? '💀 Кукла сравнения побеждает' :
-                  '🤝 Ничья';
+                  res.wins_a < res.wins_b ? '💀 Кукла сравнения побеждает' : '🤝 Ничья';
 
-  let logHtml = res.log.map(b => {
-    const winner = b.winner === 'a' ? '🟢 Ваша' : b.winner === 'b' ? '🔴 Сравнение' : '⚪ Ничья';
-    return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:0.72rem;">
-      <span style="color:var(--text-muted);">Бой ${b.battle}</span>
-      <span>${winner}</span>
-      <span style="color:var(--text-muted);">HP: ${b.hp_a_left} / ${b.hp_b_left}</span>
-      <span style="color:var(--text-muted);">${b.turns} ходов</span>
+  let battlesHtml = res.log.map(b => {
+    const winnerLabel = b.winner === 'a' ? '<span style="color:#22c55e">🟢 Победа вашей</span>' :
+                        b.winner === 'b' ? '<span style="color:#ef4444">🔴 Победа сравнения</span>' :
+                        '<span style="color:var(--text-muted)">⚪ Ничья</span>';
+    const turnsHtml = b.turn_log.map(t => {
+      const linesHtml = t.lines.map(line => {
+        const color = line.startsWith('Ваша') ? 'var(--power-color)' : 'var(--resist-color)';
+        return `<div style="font-size:0.7rem;color:${color};padding:1px 0;">${line}</div>`;
+      }).join('');
+      return `<div style="padding:4px 0;border-bottom:1px solid var(--border);">
+        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:2px;">Раунд ${t.turn}</div>
+        ${linesHtml}
+      </div>`;
+    }).join('');
+
+    return `<div style="border:1px solid var(--border);border-radius:6px;margin-bottom:4px;overflow:hidden;">
+      <div onclick="const b=this.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none';
+                   this.querySelector('.arr').textContent=b.style.display==='none'?'▼':'▲'"
+           style="display:flex;justify-content:space-between;align-items:center;
+                  padding:6px 10px;cursor:pointer;background:var(--bg-card);user-select:none;">
+        <span style="font-size:0.75rem;font-weight:600;">Бой ${b.battle} — ${winnerLabel} (${b.turns} раундов)</span>
+        <span style="display:flex;gap:8px;align-items:center;">
+          <span style="font-size:0.68rem;color:var(--text-muted);">HP: ${b.hp_a_pct}% / ${b.hp_b_pct}%</span>
+          <span class="arr" style="font-size:0.7rem;color:var(--text-muted);">▼</span>
+        </span>
+      </div>
+      <div style="display:none;background:var(--bg-secondary);padding:6px 10px;max-height:300px;overflow-y:auto;">
+        ${turnsHtml}
+      </div>
     </div>`;
   }).join('');
 
@@ -1872,7 +1892,7 @@ async function openBattleSimulation() {
       </div>
     </div>
     <div style="margin-bottom:8px;font-size:0.72rem;font-weight:600;color:var(--text-muted);">Детали боёв:</div>
-    ${logHtml}
+    ${battlesHtml}
     <div style="margin-top:12px;text-align:center;">
       <button class="btn-gkc" style="font-size:0.75rem;padding:6px 16px;" onclick="openBattleSimulation()">🔄 Повторить</button>
     </div>`;
