@@ -28,9 +28,9 @@ def _calc_damage(attacker: dict, defender: dict) -> dict:
               'damage': 0, 'reflected': 0, 'healed': 0}
 
     # Уклонение vs точность
-    evasion = min(defender.get('evasion', 0) / 100, EVASION_CAP)
+    evasion = defender.get('evasion', 0) / 100
     accuracy_bonus = (attacker.get('accuracy', 100) - 100) / 100
-    effective_evasion = min(1.0, max(0, evasion - accuracy_bonus))
+    effective_evasion = min(EVASION_CAP, max(0, evasion - accuracy_bonus))
     if random.random() < effective_evasion:
         result['evaded'] = True
         return result

@@ -1841,7 +1841,7 @@ async function openBattleSimulation() {
                   res.wins_a < res.wins_b ? '💀 Кукла сравнения побеждает' : '🤝 Ничья';
 
   let battlesHtml = res.log.map(b => {
-    const winnerLabel = b.winner === 'a' ? '<span style="color:#22c55e">🟢 Победа вашей</span>' :
+    const winnerLabel = b.winner === 'a' ? '<span style="color:#22c55e">🟢 Ваша победа</span>' :
                         b.winner === 'b' ? '<span style="color:#ef4444">🔴 Победа сравнения</span>' :
                         '<span style="color:var(--text-muted)">⚪ Ничья</span>';
     const turnsHtml = b.turn_log.map(t => {
